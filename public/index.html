@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Airtable Test</title>
+  <style>
+    :root { --bg: #fafafa; --fg: #1a1a1a; --muted: #666; --line: #ddd; --head: #f0f0f0; --err: #b00020; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #121212; --fg: #eee; --muted: #999; --line: #333; --head: #1e1e1e; --err: #ff6b81; }
+    }
+    body { margin: 0; padding: 24px 16px; font: 14px/1.5 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+    select, button { font: inherit; padding: 6px 10px; }
+    #status { color: var(--muted); }
+    #status.error { color: var(--err); }
+    .wrap { overflow-x: auto; }
+    table { border-collapse: collapse; min-width: 100%; }
+    th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+    th { background: var(--head); position: sticky; top: 0; }
+    td { max-width: 320px; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <h1>Airtable Test</h1>
+  <div class="controls">
+    <label for="table">Table:</label>
+    <select id="table"></select>
+    <button id="reload">Reload</button>
+    <span id="status">Loading tables…</span>
+  </div>
+  <div class="wrap"><table id="grid"></table></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const status = (msg, isErr = false) => { $("status").textContent = msg; $("status").className = isErr ? "error" : ""; };
+    const fmt = (v) => {
+      if (v == null) return "";
+      if (Array.isArray(v)) return v.map((x) => (typeof x === "object" ? x.name || x.filename || x.url || JSON.stringify(x) : x)).join(", ");
+      if (typeof v === "object") return v.name || v.email || JSON.stringify(v);
+      return String(v);
+    };
+
+    async function getJSON(url) {
+      const r = await fetch(url);
+      const data = await r.json();
+      if (!r.ok) throw new Error(typeof data.error === "string" ? data.error : JSON.stringify(data.error));
+      return data;
+    }
+
+    async function loadTables() {
+      try {
+        const { tables } = await getJSON("/api/tables");
+        $("table").innerHTML = tables.map((t) => `<option value="${t.id}">${t.name}</option>`).join("");
+        loadRecords();
+      } catch (e) {
+        status("Could not list tables: " + e.message, true);
+      }
+    }
+
+    async function loadRecords() {
+      const table = $("table").value;
+      status("Loading records…");
+      try {
+        const { records } = await getJSON(`/api/records?table=${encodeURIComponent(table)}`);
+        const cols = [...new Set(records.flatMap((r) => Object.keys(r.fields)))];
+        const grid = $("grid");
+        grid.innerHTML = "";
+        const head = grid.createTHead().insertRow();
+        cols.forEach((c) => { const th = document.createElement("th"); th.textContent = c; head.appendChild(th); });
+        const body = grid.createTBody();
+        records.forEach((r) => {
+          const row = body.insertRow();
+          cols.forEach((c) => { row.insertCell().textContent = fmt(r.fields[c]); });
+        });
+        status(`${records.length} record${records.length === 1 ? "" : "s"}`);
+      } catch (e) {
+        status("Could not load records: " + e.message, true);
+      }
+    }
+
+    $("table").addEventListener("change", loadRecords);
+    $("reload").addEventListener("click", loadRecords);
+    loadTables();
+  </script>
+</body>
+</html>
