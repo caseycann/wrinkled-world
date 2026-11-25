@@ -6,6 +6,7 @@ import type { GameState } from '@/lib/state'
 import { CountryCard } from '@/components/display/CountryCard'
 import { StageButton } from '@/components/display/StageButton'
 import { CrisisStrip } from '@/components/display/CrisisStrip'
+import { DiceCam } from '@/components/display/DiceCam'
 
 type DisplayState = GameState & { clockOffsetMs: number }
 
@@ -62,13 +63,14 @@ export default function DisplayPage() {
           {left.map(c => <CountryCard key={c.id} country={c} />)}
         </div>
 
-        {/* Center: stage button (countdown, room, PIN-unlocked advance/undo) */}
-        <div className="flex flex-col items-center justify-center text-center">
+        {/* Center: stage button (countdown, room, PIN-unlocked advance/undo) and dice cam */}
+        <div className="flex min-h-0 flex-col items-center justify-center gap-4 text-center">
           <StageButton
             stage={data.currentStage}
             clockOffsetMs={data.clockOffsetMs}
             onChanged={() => void mutate()}
           />
+          <DiceCam />
         </div>
 
         {/* Right: countries 5–8 */}
