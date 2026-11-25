@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
-import type { GameState, CrisisState, CountryState } from '@/lib/state'
+import type { GameState } from '@/lib/state'
 import { CountryCard } from '@/components/display/CountryCard'
 import { StageButton } from '@/components/display/StageButton'
+import { CrisisStrip } from '@/components/display/CrisisStrip'
 
 type DisplayState = GameState & { clockOffsetMs: number }
 
@@ -50,8 +51,6 @@ export default function DisplayPage() {
   const left  = data.countries.filter(c => c.number <= 4)
   const right = data.countries.filter(c => c.number >= 5)
 
-  const visibleCrises = data.crises.filter(c => c.onBoard)
-
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-gray-950 text-white">
 
@@ -79,20 +78,7 @@ export default function DisplayPage() {
       </div>
 
       {/* ── Crises strip ───────────────────────────────────────────────── */}
-      <div className="flex h-20 shrink-0 items-center gap-4 overflow-hidden border-t border-gray-700 bg-gray-900 px-6">
-        {visibleCrises.length === 0 ? (
-          <span className="text-2xl text-gray-500">No active crises</span>
-        ) : (
-          <>
-            <span className="shrink-0 text-2xl font-bold text-red-400">Crises:</span>
-            <div className="flex flex-wrap gap-3 overflow-hidden">
-              {visibleCrises.map(c => (
-                <CrisisBadge key={c.id} crisis={c} countries={data.countries} />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      <CrisisStrip crises={data.crises} countries={data.countries} />
 
       {/* ── Status bar ─────────────────────────────────────────────────── */}
       <div className="flex h-10 shrink-0 items-center justify-between border-t border-gray-800 bg-gray-900 px-6 text-lg text-gray-500">
@@ -106,33 +92,6 @@ export default function DisplayPage() {
           {error && <span className="ml-4 text-red-400">⚠ Connection error</span>}
         </span>
       </div>
-    </div>
-  )
-}
-
-// ── Crisis badge ──────────────────────────────────────────────────────────────
-
-function CrisisBadge({
-  crisis,
-  countries,
-}: {
-  crisis: CrisisState
-  countries: CountryState[]
-}) {
-  const hitLetters = crisis.countriesHit
-    .map(id => countries.find(c => c.id === id)?.letter ?? '?')
-    .join(', ')
-
-  const duration =
-    crisis.lengthType === 'Fixed rounds'
-      ? `${crisis.roundsLeft ?? 0} round${crisis.roundsLeft === 1 ? '' : 's'} left`
-      : `${crisis.runningFor ?? 1} round${crisis.runningFor === 1 ? '' : 's'}`
-
-  return (
-    <div className="shrink-0 rounded-lg border border-red-700 bg-red-900/50 px-4 py-1 text-xl">
-      <span className="font-bold text-red-200">{crisis.name}</span>
-      {hitLetters && <span className="ml-2 text-red-300">({hitLetters})</span>}
-      <span className="ml-2 text-red-400">— {duration}</span>
     </div>
   )
 }

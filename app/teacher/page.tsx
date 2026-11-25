@@ -5,6 +5,7 @@ import useSWR from 'swr'
 import type { GameState } from '@/lib/state'
 import { ChangeGrid } from '@/components/teacher/ChangeGrid'
 import { ActivityFeed } from '@/components/teacher/ActivityFeed'
+import { CrisisPanel } from '@/components/teacher/CrisisPanel'
 import { PinPad } from '@/components/shared/PinPad'
 
 const stateFetcher = async (url: string): Promise<GameState> => {
@@ -112,6 +113,12 @@ export default function TeacherPage() {
           <ChangeGrid
             countries={data.countries}
             onSaved={() => void mutate()}
+            onUnauthorized={lockConsole}
+          />
+          <CrisisPanel
+            crises={data.crises}
+            countries={data.countries}
+            onChanged={() => void mutate()}
             onUnauthorized={lockConsole}
           />
           <ActivityFeed
