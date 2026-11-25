@@ -137,6 +137,11 @@ export function transactionCreateFields(p: {
   return f
 }
 
+// Voiding is the only change ever made to an existing Transactions row.
+export function transactionVoidFields(): Pick<TransactionFields, 'Voided'> {
+  return { Voided: true }
+}
+
 export function stageLogUndoneFields(): Pick<StageLogFields, 'Undone'> {
   return { Undone: true }
 }

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
-import { planSave, SaveBodySchema, type SaveRow } from '@/lib/transactions'
+import { planSave, SaveBodySchema, VoidBodySchema, type SaveRow } from '@/lib/transactions'
 import { mockCountries, mockTransactions, mockStageLog, rollUpCountries } from '@/lib/mock'
-import type { StageLogRecord } from '@/lib/schema'
+import { transactionVoidFields, type StageLogRecord } from '@/lib/schema'
 
 const A = mockCountries.find(c => c.fields.Letter === 'A')!   // $25B, Health 3
 const C = mockCountries.find(c => c.fields.Letter === 'C')!
@@ -112,5 +112,35 @@ describe('mock rollups', () => {
     const txns = mockTransactions.map(t => (t.id === 'recTxn009' ? { ...t, fields: { ...t.fields, Voided: true } } : t))
     const a = rollUpCountries(mockCountries, txns).find(x => x.id === A.id)!
     expect(a.fields['Federal Reserve']).toBe(A.fields['Federal Reserve'] - 5)
+  })
+})
+
+describe('VoidBodySchema', () => {
+  it('accepts a void request for a record ID', () => {
+    expect(VoidBodySchema.safeParse({ action: 'void', id: 'recTxn017' }).success).toBe(true)
+  })
+  it('refuses other actions, blank IDs and IDs that are not record IDs', () => {
+    expect(VoidBodySchema.safeParse({ action: 'delete', id: 'recTxn017' }).success).toBe(false)
+    expect(VoidBodySchema.safeParse({ action: 'void', id: '' }).success).toBe(false)
+    expect(VoidBodySchema.safeParse({ action: 'void', id: 'recTxn/../x' }).success).toBe(false)
+    expect(VoidBodySchema.safeParse({ action: 'void' }).success).toBe(false)
+  })
+  it('does not match a save body', () => {
+    expect(VoidBodySchema.safeParse({ rows: [] }).success).toBe(false)
+  })
+})
+
+describe('voiding a transaction', () => {
+  it('only sets Voided', () => {
+    expect(transactionVoidFields()).toEqual({ Voided: true })
+  })
+  it('drops the row from the totals, even if a token goes below 0', () => {
+    const voided = mockTransactions.map(t =>
+      t.id === 'recTxn001' ? { ...t, fields: { ...t.fields, ...transactionVoidFields() } } : t,
+    )
+    const a = rollUpCountries(mockCountries, voided).find(c => c.id === A.id)!
+    expect(a.fields['Federal Reserve']).toBe(5)   // 25 − 20 starting roll
+    expect(a.fields.Health).toBe(-5)              // 3 − 8: allowed for a void
+    expect(voided).toHaveLength(mockTransactions.length)
   })
 })

@@ -30,6 +30,12 @@ export const SaveBodySchema = z.object({
   rows: z.array(SaveRowSchema).min(1).max(8),
 })
 
+// POST { action: "void", id } sets Voided on one Transactions row.
+export const VoidBodySchema = z.object({
+  action: z.literal('void'),
+  id: z.string().regex(/^rec[A-Za-z0-9]+$/),
+})
+
 export type SaveRow = z.infer<typeof SaveRowSchema>
 
 export interface SaveError {
