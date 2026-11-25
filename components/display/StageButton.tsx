@@ -104,8 +104,68 @@ export function StageButton({
     [stage, busy, mutateAuth, onChanged],
   )
 
+  // No stage yet: the Stage Log is empty. A teacher starts Session 0 here.
   if (!stage) {
-    return <div className="text-4xl text-gray-400">Waiting for the game to start</div>
+    const startGame = async () => {
+      if (busy) return
+      if (!unlocked) return setModal('pin')
+      setBusy(true)
+      try {
+        const res = await fetch('/api/stage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'start' }),
+        })
+        if (res.status === 401) {
+          await mutateAuth({ unlocked: false }, { revalidate: false })
+          setModal('pin')
+          return
+        }
+        if (!res.ok) {
+          const j = (await res.json().catch(() => ({}))) as { error?: string }
+          setMessage(j.error ?? 'Something went wrong. Try again.')
+        }
+      } catch {
+        setMessage('No connection. Try again.')
+      } finally {
+        setBusy(false)
+        onChanged()
+      }
+    }
+
+    return (
+      <div className="flex flex-col items-center gap-4">
+        <button
+          type="button"
+          onClick={() => { enableChime(); void startGame() }}
+          disabled={busy}
+          aria-label={unlocked ? 'Start the game' : 'Start the game (locked, tap to enter PIN)'}
+          className={[
+            'relative flex h-[440px] w-[440px] flex-col items-center justify-center gap-4 rounded-[48px]',
+            'border-4 border-gray-600 bg-gray-800 text-center',
+            unlocked ? 'cursor-pointer hover:bg-gray-700 active:bg-gray-600' : 'cursor-default',
+            busy ? 'opacity-60' : '',
+          ].join(' ')}
+        >
+          {!unlocked && (
+            <span className="absolute right-5 top-4 text-2xl text-gray-500" aria-hidden>🔒</span>
+          )}
+          <div className="text-4xl text-gray-400">Waiting to start</div>
+          <div className="text-6xl font-black">▶ Start game</div>
+          <div className="text-2xl text-gray-400">{unlocked ? 'Tap for Session 0' : ''}</div>
+        </button>
+        <div className="h-8 text-2xl text-orange-300" role="status">{message}</div>
+        {modal === 'pin' && (
+          <PinPad
+            onCancel={() => setModal('none')}
+            onUnlocked={async () => {
+              await mutateAuth({ unlocked: true }, { revalidate: false })
+              setModal('none')
+            }}
+          />
+        )}
+      </div>
+    )
   }
 
   const next = nextStageLocation(stage)

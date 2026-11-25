@@ -23,6 +23,7 @@ import {
   currentStageRecord,
   locationOf,
   planAdvance,
+  planStart,
   planUndo,
   undoSnapshotRound,
   type AdvancePlan,
@@ -34,10 +35,16 @@ import {
 // `expect` is the stage the button showed when it was tapped. If the stage has
 // changed since (double tap, or the other teacher), nothing is written and the
 // route answers 409, so one tap can never move the game two steps.
-const Body = z.object({
-  action: z.enum(['advance', 'undo']),
-  expect: z.string().min(1),
-})
+//
+// POST { action: "start" }
+//
+// Only when the Stage Log has no current stage: adds the Session 0 row. If the
+// game has already started, writes nothing and answers 409.
+const Body = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('start') }),
+  z.object({ action: z.literal('advance'), expect: z.string().min(1) }),
+  z.object({ action: z.literal('undo'), expect: z.string().min(1) }),
+])
 
 export async function POST(request: NextRequest) {
   const denied = requireAuth(request)
@@ -53,7 +60,7 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
   }
-  const { action, expect } = parsed.data
+  const { action } = parsed.data
   const live = process.env.AIRTABLE_MODE === 'live'
   const now = new Date().toISOString()
 
@@ -62,8 +69,28 @@ export async function POST(request: NextRequest) {
     // what is really current. Other tables are read only when needed.
     const stageLog = live ? await fetchStageLog() : getMockDb().stageLog
 
+    if (parsed.data.action === 'start') {
+      const plan = planStart(stageLog, now)
+      if (!plan) {
+        return NextResponse.json(
+          { error: 'The game has already started. Showing the latest.', code: 'stale' },
+          { status: 409 },
+        )
+      }
+      const fields = stageLogCreateFields({ ...plan.to, startedAt: plan.startedAt })
+      if (live) {
+        await createRecords(TABLES.StageLog, [fields])
+      } else {
+        getMockDb().stageLog.push({
+          id: newMockId('Stage'), createdTime: plan.startedAt, fields: { ...fields, Undone: false },
+        })
+      }
+      bustCache()
+      return NextResponse.json({ ok: true, round: 0, stage: 'Session 0' })
+    }
+
     const current = currentStageRecord(stageLog)
-    if (!current || current.id !== expect) {
+    if (!current || current.id !== parsed.data.expect) {
       return NextResponse.json(
         { error: 'The stage changed. Showing the latest.', code: 'stale' },
         { status: 409 },

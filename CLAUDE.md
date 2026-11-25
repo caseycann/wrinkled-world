@@ -50,7 +50,7 @@ app/
   teacher/page.tsx          teacher console (PIN-protected)
   api/state/route.ts        GET  cached game state
   api/transactions/route.ts POST new ledger rows, or void one
-  api/stage/route.ts        POST { action: "advance" | "undo" }
+  api/stage/route.ts        POST { action: "start" | "advance" | "undo" }
   api/crises/route.ts       POST add / solve a crisis
   api/refresh/route.ts      POST re-read Airtable into the cache
   api/auth/route.ts         POST PIN -> httpOnly session cookie; GET -> { unlocked }
@@ -162,6 +162,8 @@ when the win conditions are met.
 | Consequences | 10 | Media Lab |
 
 - The current stage is the newest Stage Log row that is not undone.
+- **Start** (only when the Stage Log has no current stage): the display's stage button shows "Start game";
+  after PIN unlock it adds the Session 0 row. If the game has already started it writes nothing and returns 409.
 - **Advance** adds a Stage Log row for the next stage. From Consequences, it moves to the next round's
   Stage Setting and, in the same action, writes 8 Round Snapshots rows for the round just finished.
   Round 9 Consequences advances to Round 10 like any other round.

@@ -8,7 +8,7 @@ import { buildGameState } from '@/lib/state'
 import { bustCache } from '@/lib/cache'
 import type { StageLogRecord } from '@/lib/schema'
 import type { StageName } from '@/lib/rules'
-import { currentStageRecord, planAdvance, planUndo } from '@/lib/stage'
+import { currentStageRecord, planAdvance, planStart, planUndo } from '@/lib/stage'
 
 const NOW = '2026-11-25T10:00:00.000Z'
 
@@ -21,6 +21,19 @@ function log(rows: [round: number, stage: StageName, undone?: boolean][]): Stage
 }
 
 const noData = { countries: [], roundSnapshots: [] }
+
+// ── planStart ─────────────────────────────────────────────────────────────────
+
+describe('planStart', () => {
+  it('an empty Stage Log starts at Session 0', () => {
+    expect(planStart([], NOW)).toEqual({ to: { round: 0, stage: 'Session 0' }, startedAt: NOW })
+  })
+
+  it('does nothing once the game has started', () => {
+    expect(planStart(log([[0, 'Session 0']]), NOW)).toBeNull()
+    expect(planStart(log([[0, 'Session 0'], [1, 'Stage Setting', true]]), NOW)).toBeNull()
+  })
+})
 
 // ── planAdvance ───────────────────────────────────────────────────────────────
 
@@ -182,6 +195,28 @@ describe('POST /api/stage (mock mode)', () => {
     const res = await POST(req({ action: 'advance', expect: currentId() }, false))
     expect(res.status).toBe(401)
     expect(getMockDb().stageLog).toHaveLength(mockStageLog.length)
+  })
+
+  it('start on an empty Stage Log adds Session 0; a second start is refused', async () => {
+    getMockDb().stageLog = []
+    const res = await POST(req({ action: 'start' }))
+    expect(res.status).toBe(200)
+    const state = await buildGameState()
+    expect(state.currentStage).toMatchObject({ round: 0, stage: 'Session 0' })
+    expect((await POST(req({ action: 'start' }))).status).toBe(409)
+    expect(getMockDb().stageLog).toHaveLength(1)
+  })
+
+  it('start is refused while a game is running (409)', async () => {
+    const res = await POST(req({ action: 'start' }))
+    expect(res.status).toBe(409)
+    expect(getMockDb().stageLog).toHaveLength(mockStageLog.length)
+  })
+
+  it('start needs the teacher session (401)', async () => {
+    getMockDb().stageLog = []
+    expect((await POST(req({ action: 'start' }, false))).status).toBe(401)
+    expect(getMockDb().stageLog).toHaveLength(0)
   })
 
   it('rejects a bad action (400)', async () => {

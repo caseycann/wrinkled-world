@@ -25,6 +25,20 @@ export function locationOf(record: StageLogRecord): StageLocation {
   return { round: record.fields.Round, stage: record.fields.Stage }
 }
 
+// ── Start ─────────────────────────────────────────────────────────────────────
+
+export interface StartPlan {
+  to: StageLocation
+  startedAt: string
+}
+
+// Starts the game with a Session 0 row. Only when the Stage Log has no current
+// stage; otherwise returns null (the game is already running).
+export function planStart(stageLog: StageLogRecord[], now: string): StartPlan | null {
+  if (currentStageRecord(stageLog)) return null
+  return { to: { round: 0, stage: 'Session 0' }, startedAt: now }
+}
+
 // ── Advance ───────────────────────────────────────────────────────────────────
 
 export interface SnapshotPlan {
