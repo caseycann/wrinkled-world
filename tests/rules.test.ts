@@ -5,7 +5,11 @@ import {
   ROUND_STAGES,
   SESSION_ZERO,
   nextStageLocation,
+  advanceStartsNewRound,
   advanceSnapshotRound,
+  stageDefinition,
+  stageSecondsLeft,
+  formatCountdown,
   undoDeletesSnapshotRound,
   crisisRoundsLeft,
   crisisRunningFor,
@@ -160,8 +164,14 @@ describe('nextStageLocation', () => {
       .toEqual({ round: 9, stage: 'Stage Setting' })
   })
 
-  it('Round 9 Consequences → null (game over, no new log row)', () => {
-    expect(nextStageLocation({ round: 9, stage: 'Consequences' })).toBeNull()
+  it('Round 9 Consequences → Round 10 Stage Setting (no round limit, no game over)', () => {
+    expect(nextStageLocation({ round: 9, stage: 'Consequences' }))
+      .toEqual({ round: 10, stage: 'Stage Setting' })
+  })
+
+  it('Round 12 Consequences → Round 13 Stage Setting', () => {
+    expect(nextStageLocation({ round: 12, stage: 'Consequences' }))
+      .toEqual({ round: 13, stage: 'Stage Setting' })
   })
 })
 
@@ -184,7 +194,7 @@ describe('advanceSnapshotRound', () => {
     expect(advanceSnapshotRound({ round: 1, stage: 'Consequences' })).toBe(1)
   })
 
-  it('Round 9 Consequences → round 9 (game-over advance still writes snapshots)', () => {
+  it('Round 9 Consequences → round 9', () => {
     expect(advanceSnapshotRound({ round: 9, stage: 'Consequences' })).toBe(9)
   })
 })
@@ -192,32 +202,103 @@ describe('advanceSnapshotRound', () => {
 // ── undoDeletesSnapshotRound ──────────────────────────────────────────────────
 
 describe('undoDeletesSnapshotRound', () => {
-  it('game over (gameIsOver=true) → 9', () => {
-    expect(undoDeletesSnapshotRound({ round: 9, stage: 'Consequences' }, true)).toBe(9)
-  })
-
   it('Stage Setting round 1 → null (came from Session 0, no snapshots written)', () => {
-    expect(undoDeletesSnapshotRound({ round: 1, stage: 'Stage Setting' }, false)).toBeNull()
+    expect(undoDeletesSnapshotRound({ round: 1, stage: 'Stage Setting' })).toBeNull()
   })
 
   it('Stage Setting round 2 → 1', () => {
-    expect(undoDeletesSnapshotRound({ round: 2, stage: 'Stage Setting' }, false)).toBe(1)
+    expect(undoDeletesSnapshotRound({ round: 2, stage: 'Stage Setting' })).toBe(1)
   })
 
   it('Stage Setting round 9 → 8', () => {
-    expect(undoDeletesSnapshotRound({ round: 9, stage: 'Stage Setting' }, false)).toBe(8)
+    expect(undoDeletesSnapshotRound({ round: 9, stage: 'Stage Setting' })).toBe(8)
   })
 
   it('Plan round 3 → null', () => {
-    expect(undoDeletesSnapshotRound({ round: 3, stage: 'Plan' }, false)).toBeNull()
+    expect(undoDeletesSnapshotRound({ round: 3, stage: 'Plan' })).toBeNull()
   })
 
-  it('Consequences round 9 without game over → null', () => {
-    expect(undoDeletesSnapshotRound({ round: 9, stage: 'Consequences' }, false)).toBeNull()
+  it('Consequences round 9 → null', () => {
+    expect(undoDeletesSnapshotRound({ round: 9, stage: 'Consequences' })).toBeNull()
+  })
+
+  it('Stage Setting round 10 → 9 (past Round 9 works the same)', () => {
+    expect(undoDeletesSnapshotRound({ round: 10, stage: 'Stage Setting' })).toBe(9)
   })
 
   it('repeated undo — Stage Setting round 5 → 4', () => {
-    expect(undoDeletesSnapshotRound({ round: 5, stage: 'Stage Setting' }, false)).toBe(4)
+    expect(undoDeletesSnapshotRound({ round: 5, stage: 'Stage Setting' })).toBe(4)
+  })
+})
+
+// ── advanceStartsNewRound ─────────────────────────────────────────────────────
+
+describe('advanceStartsNewRound (when to ask "Start Round N?")', () => {
+  it('Session 0 → yes (starts Round 1)', () => {
+    expect(advanceStartsNewRound({ round: 0, stage: 'Session 0' })).toBe(true)
+  })
+
+  it('Consequences → yes', () => {
+    expect(advanceStartsNewRound({ round: 4, stage: 'Consequences' })).toBe(true)
+    expect(advanceStartsNewRound({ round: 9, stage: 'Consequences' })).toBe(true)
+  })
+
+  it.each(['Stage Setting', 'Plan', 'Act/Negotiate', 'Report', 'Reaction'] as const)(
+    '%s → no',
+    stage => {
+      expect(advanceStartsNewRound({ round: 3, stage })).toBe(false)
+    },
+  )
+})
+
+// ── stageDefinition ───────────────────────────────────────────────────────────
+
+describe('stageDefinition', () => {
+  it('Session 0 → SESSION_ZERO', () => {
+    expect(stageDefinition('Session 0')).toBe(SESSION_ZERO)
+  })
+
+  it('Act/Negotiate → 10 min in CDL', () => {
+    expect(stageDefinition('Act/Negotiate')).toEqual({ name: 'Act/Negotiate', minutes: 10, room: 'CDL' })
+  })
+})
+
+// ── stageSecondsLeft / formatCountdown ────────────────────────────────────────
+
+describe('stageSecondsLeft', () => {
+  const start = Date.parse('2026-11-25T09:00:00.000Z')
+
+  it('full time at the start', () => {
+    expect(stageSecondsLeft(start, 5, start)).toBe(300)
+  })
+
+  it('rounds partial seconds up', () => {
+    expect(stageSecondsLeft(start, 5, start + 299_001)).toBe(1)
+  })
+
+  it('exactly at the end → 0', () => {
+    expect(stageSecondsLeft(start, 5, start + 300_000)).toBe(0)
+  })
+
+  it('never below 0 after time is up (no auto-advance)', () => {
+    expect(stageSecondsLeft(start, 5, start + 3_600_000)).toBe(0)
+  })
+
+  it('0-minute stage → 0', () => {
+    expect(stageSecondsLeft(start, 0, start)).toBe(0)
+  })
+})
+
+describe('formatCountdown', () => {
+  it.each([
+    [600, '10:00'],
+    [300, '5:00'],
+    [61, '1:01'],
+    [9, '0:09'],
+    [0, '0:00'],
+    [-5, '0:00'],
+  ])('%i s → %s', (secs, expected) => {
+    expect(formatCountdown(secs)).toBe(expected)
   })
 })
 

@@ -4,15 +4,22 @@ import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import type { GameState, CrisisState, CountryState } from '@/lib/state'
 import { CountryCard } from '@/components/display/CountryCard'
+import { StageButton } from '@/components/display/StageButton'
 
-const fetcher = (url: string) =>
-  fetch(url).then(r => {
-    if (!r.ok) throw new Error(`HTTP ${r.status}`)
-    return r.json() as Promise<GameState>
-  })
+type DisplayState = GameState & { clockOffsetMs: number }
+
+// Measures how far this computer's clock is from the server's, so the stage
+// countdown is right even if the projector's clock is off.
+const fetcher = async (url: string): Promise<DisplayState> => {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`HTTP ${r.status}`)
+  const json = (await r.json()) as GameState & { serverNow?: string }
+  const serverMs = json.serverNow ? Date.parse(json.serverNow) : NaN
+  return { ...json, clockOffsetMs: Number.isNaN(serverMs) ? 0 : serverMs - Date.now() }
+}
 
 export default function DisplayPage() {
-  const { data, error } = useSWR<GameState>('/api/state', fetcher, {
+  const { data, error, mutate } = useSWR<DisplayState>('/api/state', fetcher, {
     refreshInterval: 3000,
     revalidateOnFocus: false,
     isPaused: () => typeof document !== 'undefined' && document.hidden,
@@ -60,24 +67,13 @@ export default function DisplayPage() {
           {left.map(c => <CountryCard key={c.id} country={c} />)}
         </div>
 
-        {/* Center: round + stage */}
-        <div className="flex flex-col items-center justify-center gap-4 text-center">
-          {data.isGameOver ? (
-            <div className="text-5xl font-black text-yellow-400">Game Over</div>
-          ) : data.currentStage ? (
-            <>
-              {data.currentStage.round > 0 && (
-                <div className="text-3xl font-semibold text-gray-400">
-                  Round {data.currentStage.round}
-                </div>
-              )}
-              <div className="text-5xl font-black">{data.currentStage.stage}</div>
-              <div className="text-2xl text-gray-300">{data.currentStage.room}</div>
-              {data.currentStage.minutes > 0 && (
-                <div className="text-2xl text-gray-500">{data.currentStage.minutes} min</div>
-              )}
-            </>
-          ) : null}
+        {/* Center: stage button (countdown, room, PIN-unlocked advance/undo) */}
+        <div className="flex flex-col items-center justify-center text-center">
+          <StageButton
+            stage={data.currentStage}
+            clockOffsetMs={data.clockOffsetMs}
+            onChanged={() => void mutate()}
+          />
         </div>
 
         {/* Right: countries 5–8 */}

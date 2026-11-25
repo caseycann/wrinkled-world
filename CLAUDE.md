@@ -53,14 +53,15 @@ app/
   api/stage/route.ts        POST { action: "advance" | "undo" }
   api/crises/route.ts       POST add / solve a crisis
   api/refresh/route.ts      POST re-read Airtable into the cache
-  api/auth/route.ts         POST PIN -> httpOnly session cookie
+  api/auth/route.ts         POST PIN -> httpOnly session cookie; GET -> { unlocked }
 lib/
   rules.ts                  EVERY game number and pure rules function (single source of truth)
+  stage.ts                  pure Advance/Undo planners (which Stage Log / snapshot rows to write)
   crises.ts                 the 19 crisis cards (number, name, length)
   airtable.ts               the ONLY module that talks to Airtable
   schema.ts                 table names, field names, zod schemas
   state.ts                  builds the cached GameState from Airtable or mock data
-  mock.ts                   mock data for development and tests
+  mock.ts                   mock data, plus an in-memory store that write routes change in mock mode
   auth.ts                   PIN check helpers
 components/                 UI components (display/, teacher/, shared/)
 tests/                      Vitest tests
@@ -142,7 +143,9 @@ to `lib/rules.ts`.
 
 ## Stages and rounds
 
-Round 0 is Session 0 and has a single stage, `Session 0`. Rounds 1–9 each run these stages in order:
+Round 0 is Session 0 and has a single stage, `Session 0`. Every round from 1 on runs these stages in order.
+There is **no round limit** and **no end-game step** in the app: the Game Master ends the game in the room
+when the win conditions are met.
 
 | Stage | Minutes | Room |
 | --- | --- | --- |
@@ -156,13 +159,17 @@ Round 0 is Session 0 and has a single stage, `Session 0`. Rounds 1–9 each run 
 - The current stage is the newest Stage Log row that is not undone.
 - **Advance** adds a Stage Log row for the next stage. From Consequences, it moves to the next round's
   Stage Setting and, in the same action, writes 8 Round Snapshots rows for the round just finished.
-  The game ends when all the win conditions are met.
+  Round 9 Consequences advances to Round 10 like any other round.
+- `POST /api/stage` takes `{ action, expect }`, where `expect` is the current Stage Log row ID the button
+  showed. If the stage has changed since, it writes nothing and returns 409 (protects against double taps
+  and two teachers).
 - **Undo** marks the newest non-undone Stage Log row `Undone`, sets the restored row's `Started At` to now
   (so its timer restarts), and, if the undone step was a round rollover, deletes that round's 8 snapshots.
   Undo can be repeated.
-- The UI asks for confirmation only on a round rollover ("Start Round 5?").
+- The UI asks for confirmation only when a new round starts ("Start Round 5?"), including Session 0 → Round 1.
 - The countdown is computed from `Started At` plus the stage's minutes. **Never auto-advance.** At 0,
-  play a chime and pulse the button.
+  play a chime and pulse the button. The countdown corrects for the display computer's clock using
+  `serverNow` from `/api/state`. Stage Log `Entered By` is left blank (the session doesn't know which teacher).
 
 ## Crises
 
@@ -201,7 +208,7 @@ Because this is computed, Undo needs no crisis changes. "Until solved" crises sh
   short plan first and wait for approval.
 - Write unit tests for every function in `lib/rules.ts` and for stage logic. Always cover tier edges
   (0, 1, 5, 6, 10, 11, 15, 16, 25), input validation (decimals, blanks, totals below 0), round rollover,
-  Round 9 to Game Over, and repeated undo.
+  rollover past Round 9 (no game over), and repeated undo.
 - Work one prompt at a time, following the prompt sequence in the roadmap doc. Don't start the next
   feature in the same session.
 - Keep commits small, one feature each, with clear messages.

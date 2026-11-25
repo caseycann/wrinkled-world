@@ -3,8 +3,9 @@
 // Set AIRTABLE_MODE=live to read from Airtable; anything else (including unset)
 // uses mock data.
 
-import { ROUND_STAGES, SESSION_ZERO, crisisRoundsLeft, crisisRunningFor } from './rules'
-import { mockAirtableData } from './mock'
+import { stageDefinition, crisisRoundsLeft, crisisRunningFor, type StageName } from './rules'
+import { getMockDb } from './mock'
+import { currentStageRecord } from './stage'
 import {
   fetchCountries,
   fetchTransactions,
@@ -45,9 +46,9 @@ export interface CountryState {
 }
 
 export interface StageState {
-  id: string
+  id: string          // Stage Log record ID; sent back as `expect` to /api/stage
   round: number
-  stage: string
+  stage: StageName
   startedAt: string   // ISO datetime
   minutes: number     // countdown length from rules.ts
   room: string
@@ -88,8 +89,7 @@ export interface RecentTransaction {
 
 export interface GameState {
   countries: CountryState[]           // sorted by Number (1–8)
-  currentStage: StageState | null     // null when game is over
-  isGameOver: boolean
+  currentStage: StageState | null     // null only when the Stage Log is empty
   crises: CrisisState[]              // all crises; UI filters to what's visible
   recentTransactions: RecentTransaction[]  // last 20, newest first
   fetchedAt: string                   // ISO datetime for "Updated N seconds ago"
@@ -122,37 +122,24 @@ function buildFromRecords(
 
   // ── Current stage ────────────────────────────────────────────────────────────
   // The current stage is the newest Stage Log row that is not undone.
-  const activeLogs = stageLog
-    .filter(r => !r.fields.Undone)
-    .sort((a, b) => new Date(a.createdTime).getTime() - new Date(b.createdTime).getTime())
-
-  const latestLog = activeLogs.at(-1)
+  // There is no round limit and no game-over state: the Game Master ends the
+  // game in the room when the win conditions are met.
+  const latestLog = currentStageRecord(stageLog)
 
   let currentStage: StageState | null = null
   let currentRound = 0
-  let isGameOver = false
 
   if (latestLog) {
     const { Round, Stage, 'Started At': startedAt } = latestLog.fields
     currentRound = Round
-
-    // Game over: advanced past Round 9 Consequences. The advance action writes
-    // 8 Round Snapshots but adds no new Stage Log row, so the last log entry
-    // stays at Round 9/Consequences. We detect completion by those snapshots.
-    const hasRound9Snapshots = roundSnapshots.some(s => s.fields.Round === 9)
-    if (Round === 9 && Stage === 'Consequences' && hasRound9Snapshots) {
-      isGameOver = true
-    } else {
-      const def =
-        Stage === 'Session 0' ? SESSION_ZERO : ROUND_STAGES.find(s => s.name === Stage)
-      currentStage = {
-        id: latestLog.id,
-        round: Round,
-        stage: Stage,
-        startedAt,
-        minutes: def?.minutes ?? 0,
-        room: def?.room ?? '',
-      }
+    const def = stageDefinition(Stage)
+    currentStage = {
+      id: latestLog.id,
+      round: Round,
+      stage: Stage,
+      startedAt,
+      minutes: def.minutes,
+      room: def.room,
     }
   }
 
@@ -224,7 +211,6 @@ function buildFromRecords(
   return {
     countries: countryStates,
     currentStage,
-    isGameOver,
     crises: crisisStates,
     recentTransactions,
     fetchedAt: new Date().toISOString(),
@@ -235,8 +221,9 @@ function buildFromRecords(
 
 export async function buildGameState(): Promise<GameState> {
   if (process.env.AIRTABLE_MODE !== 'live') {
-    const { countries, transactions, stageLog, roundSnapshots, crises } = mockAirtableData
-    return buildFromRecords(countries, transactions, stageLog, roundSnapshots, crises)
+    const { countries, transactions, stageLog, roundSnapshots, crises } = getMockDb()
+    // Copy arrays: buildFromRecords sorts countries in place.
+    return buildFromRecords([...countries], transactions, stageLog, roundSnapshots, crises)
   }
 
   const [countries, transactions, stageLog, roundSnapshots, crises] = await Promise.all([

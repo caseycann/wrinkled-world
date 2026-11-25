@@ -1,8 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
-import { checkPin, setSessionCookie } from '@/lib/auth'
+import { checkPin, isAuthed, setSessionCookie } from '@/lib/auth'
 
 const Body = z.object({ pin: z.string() })
+
+// The session cookie is httpOnly, so pages ask here whether they are unlocked.
+export async function GET(request: NextRequest) {
+  return NextResponse.json({ unlocked: isAuthed(request) })
+}
 
 export async function POST(request: NextRequest) {
   let body: unknown

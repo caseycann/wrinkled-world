@@ -268,3 +268,33 @@ export const mockAirtableData = {
   roundSnapshots: mockRoundSnapshots,
   crises: mockCrises,
 }
+
+// ── Mutable in-memory store (mock mode) ───────────────────────────────────────
+// Write routes change this copy so features work end to end without Airtable.
+// Kept on globalThis so Next dev's module reloads share one copy. It resets to
+// the data above whenever the server restarts.
+
+export type MockDb = {
+  countries: CountryRecord[]
+  transactions: TransactionRecord[]
+  stageLog: StageLogRecord[]
+  roundSnapshots: RoundSnapshotRecord[]
+  crises: CrisisRecord[]
+}
+
+const store = globalThis as typeof globalThis & { __wrinkledWorldMockDb?: MockDb }
+
+export function getMockDb(): MockDb {
+  store.__wrinkledWorldMockDb ??= structuredClone(mockAirtableData)
+  return store.__wrinkledWorldMockDb
+}
+
+export function resetMockDb(): void {
+  store.__wrinkledWorldMockDb = structuredClone(mockAirtableData)
+}
+
+let mockIdCounter = 0
+export function newMockId(prefix: string): string {
+  mockIdCounter += 1
+  return `rec${prefix}${Date.now().toString(36)}${mockIdCounter}`
+}

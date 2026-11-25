@@ -27,6 +27,12 @@ export function setSessionCookie(response: NextResponse): NextResponse {
   return response
 }
 
+export function isAuthed(request: NextRequest): boolean {
+  const pin = process.env.TEACHER_PIN
+  if (!pin) return false
+  return request.cookies.get(COOKIE_NAME)?.value === sessionToken(pin)
+}
+
 // Returns null when the request is authenticated, or a 401 NextResponse.
 // Usage: const denied = requireAuth(request); if (denied) return denied;
 export function requireAuth(request: NextRequest): NextResponse | null {

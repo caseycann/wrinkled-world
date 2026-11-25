@@ -44,7 +44,9 @@ export const SESSION_ZERO: StageDefinition = {
   room: 'Media Lab',
 }
 
-// Rounds 1–9 cycle through these six stages in order.
+// Every round from 1 on cycles through these six stages in order.
+// There is no round limit: the game ends when the win conditions are met,
+// which the Game Master decides in the room. The app has no end-game step.
 export const ROUND_STAGES: readonly StageDefinition[] = [
   { name: 'Stage Setting', minutes: 5,  room: 'Media Lab' },
   { name: 'Plan',          minutes: 5,  room: 'Media Lab' },
@@ -54,7 +56,12 @@ export const ROUND_STAGES: readonly StageDefinition[] = [
   { name: 'Consequences',  minutes: 10, room: 'Media Lab' },
 ]
 
-export const MAX_ROUND = 9
+export function stageDefinition(stage: StageName): StageDefinition {
+  if (stage === 'Session 0') return SESSION_ZERO
+  const def = ROUND_STAGES.find(s => s.name === stage)
+  if (!def) throw new Error(`Unknown stage: ${stage}`)
+  return def
+}
 
 // ── Stage navigation ──────────────────────────────────────────────────────────
 
@@ -63,9 +70,8 @@ export interface StageLocation {
   stage: StageName
 }
 
-// Returns the stage log entry that an Advance action should write, or null if
-// advancing from Round 9 Consequences ends the game (no new log row is written).
-export function nextStageLocation(current: StageLocation): StageLocation | null {
+// Returns the stage log entry that an Advance action should write.
+export function nextStageLocation(current: StageLocation): StageLocation {
   const { round, stage } = current
   if (stage === 'Session 0') {
     return { round: 1, stage: 'Stage Setting' }
@@ -74,34 +80,47 @@ export function nextStageLocation(current: StageLocation): StageLocation | null 
   if (idx < ROUND_STAGES.length - 1) {
     return { round, stage: ROUND_STAGES[idx + 1].name }
   }
-  // Consequences → next round, or game over at Round 9
-  if (round >= MAX_ROUND) return null
+  // Consequences → next round's Stage Setting (no round limit)
   return { round: round + 1, stage: 'Stage Setting' }
+}
+
+// True when advancing from `current` starts a new round (Session 0 → Round 1,
+// or Consequences → next round). The UI asks "Start Round N?" only then.
+export function advanceStartsNewRound(current: StageLocation): boolean {
+  return nextStageLocation(current).round !== current.round
 }
 
 // Returns the round whose 8 Round Snapshot rows should be written when
 // advancing from `current`, or null if no snapshots are needed.
-// Snapshots are always written when leaving Consequences (even on game over).
 export function advanceSnapshotRound(current: StageLocation): number | null {
   return current.stage === 'Consequences' ? current.round : null
 }
 
 // Returns the round whose 8 Round Snapshot rows should be deleted when
 // undoing `entryBeingUndone`, or null if no snapshot deletion is needed.
-// Pass gameIsOver=true when no new stage log row was written (game-over advance).
-export function undoDeletesSnapshotRound(
-  entryBeingUndone: StageLocation,
-  gameIsOver: boolean,
-): number | null {
-  // Game over: the advance that ended the game wrote Round 9 snapshots but no
-  // new log row, so we detect it via gameIsOver rather than the entry's stage.
-  if (gameIsOver) return MAX_ROUND
-  // Normal rollover: Stage Setting at round > 1 was produced by an advance that
-  // also wrote snapshots for the previous round.
+// A Stage Setting at round > 1 was produced by a rollover that also wrote
+// snapshots for the previous round. Round 1 Stage Setting came from Session 0,
+// which writes none.
+export function undoDeletesSnapshotRound(entryBeingUndone: StageLocation): number | null {
   if (entryBeingUndone.stage === 'Stage Setting' && entryBeingUndone.round > 1) {
     return entryBeingUndone.round - 1
   }
   return null
+}
+
+// ── Stage countdown ───────────────────────────────────────────────────────────
+
+// Whole seconds left in a stage, never below 0. Rounded up so the display
+// reads 0:00 only once time is truly up. The app never auto-advances at 0.
+export function stageSecondsLeft(startedAtMs: number, minutes: number, nowMs: number): number {
+  const endMs = startedAtMs + minutes * 60_000
+  return Math.max(0, Math.ceil((endMs - nowMs) / 1000))
+}
+
+// "M:SS" for a countdown value in seconds.
+export function formatCountdown(seconds: number): string {
+  const s = Math.max(0, Math.floor(seconds))
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
 // ── Crisis countdown ──────────────────────────────────────────────────────────

@@ -101,6 +101,46 @@ export const StageLogRecordSchema = airtableRecord(StageLogFieldsSchema)
 export const RoundSnapshotRecordSchema = airtableRecord(RoundSnapshotFieldsSchema)
 export const CrisisRecordSchema = airtableRecord(CrisisFieldsSchema)
 
+// ── Write-field builders ──────────────────────────────────────────────────────
+// Route handlers build Airtable `fields` objects only through these, so field
+// names stay in this file. Never include formula/rollup/created-time fields.
+
+export function stageLogCreateFields(p: {
+  round: number
+  stage: (typeof STAGE_OPTIONS)[number]
+  startedAt: string
+}): Pick<StageLogFields, 'Round' | 'Stage' | 'Started At'> {
+  return { Round: p.round, Stage: p.stage, 'Started At': p.startedAt }
+}
+
+export function stageLogUndoneFields(): Pick<StageLogFields, 'Undone'> {
+  return { Undone: true }
+}
+
+export function stageLogRestartFields(startedAt: string): Pick<StageLogFields, 'Started At'> {
+  return { 'Started At': startedAt }
+}
+
+export function roundSnapshotCreateFields(p: {
+  round: number
+  countryId: string
+  federalReserve: number
+  military: number
+  health: number
+  education: number
+  standardOfLiving: number
+}): RoundSnapshotFields {
+  return {
+    Round: p.round,
+    Country: [p.countryId],
+    'Federal Reserve': p.federalReserve,
+    Military: p.military,
+    Health: p.health,
+    Education: p.education,
+    'Standard of Living': p.standardOfLiving,
+  }
+}
+
 // ── Inferred TypeScript types ─────────────────────────────────────────────────
 
 export type CountryFields = z.infer<typeof CountryFieldsSchema>
