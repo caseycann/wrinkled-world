@@ -141,14 +141,14 @@ export const mockTransactions: TransactionRecord[] = [
     'Money Change': -6, 'Military Change': 2, Note: 'Bought 2 military', Voided: false,
   }},
 
-  // Round 1 — Health Pandemic crisis damages A and B (Consequences)
+  // Round 1 — Global Pandemic crisis damages A and B (Consequences)
   { id: 'recTxn018', createdTime: '2026-11-24T09:36:00.000Z', fields: {
     Country: [CID.A], Round: 1, Stage: 'Consequences', Type: 'Crisis damage',
-    'Health Change': -5, Note: 'Health Pandemic', Voided: false,
+    'Health Change': -5, Note: 'Global Pandemic', Voided: false,
   }},
   { id: 'recTxn019', createdTime: '2026-11-24T09:36:00.000Z', fields: {
     Country: [CID.B], Round: 1, Stage: 'Consequences', Type: 'Crisis damage',
-    'Health Change': -4, Note: 'Health Pandemic', Voided: false,
+    'Health Change': -4, Note: 'Global Pandemic', Voided: false,
   }},
 
   // Round 1 — Trade War damages E's standard of living (Consequences)
@@ -232,19 +232,30 @@ export const mockRoundSnapshots: RoundSnapshotRecord[] = [
 ]
 
 // ── Crises ────────────────────────────────────────────────────────────────────
-// Two active until-solved crises both started in Round 1.
+// One row per card, matching the Airtable Crises table (blank Rounds = until
+// solved). Two cards are on the board: Global Pandemic (until solved, A and B,
+// since Round 1) and Automation Wave (2 rounds, E, started Round 2).
 
 export const mockCrises: CrisisRecord[] = [
-  { id: 'recCrisis111', createdTime: '2026-11-24T09:00:00.000Z', fields: {
-    Name: 'Health Pandemic', 'Card Number': 4,
-    'Countries Hit': [CID.A, CID.B],
-    'Started Round': 1, 'Length Type': 'Until solved', Status: 'Active',
-  }},
-  { id: 'recCrisis222', createdTime: '2026-11-24T09:00:00.000Z', fields: {
-    Name: 'Trade War', 'Card Number': 11,
-    'Countries Hit': [CID.E],
-    'Started Round': 1, 'Length Type': 'Until solved', Status: 'Active',
-  }},
+  { id: 'recCrisisCard01', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Nuclear Reactor Meltdown', 'Card Number': 1, 'Countries Hit': [] } },
+  { id: 'recCrisisCard02', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Global Pandemic', 'Card Number': 2, 'Countries Hit': [CID.A, CID.B], 'Started Round': 1, Status: 'Active' } },
+  { id: 'recCrisisCard03', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Hacktivist Attack', 'Card Number': 3, 'Countries Hit': [] } },
+  { id: 'recCrisisCard04', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Unionization of Education', 'Card Number': 4, 'Countries Hit': [] } },
+  { id: 'recCrisisCard05', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Global Communication Breakdown', 'Card Number': 5, 'Countries Hit': [] } },
+  { id: 'recCrisisCard06', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Snowstorms', 'Card Number': 6, 'Countries Hit': [] } },
+  { id: 'recCrisisCard07', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Oil Spill', 'Card Number': 7, 'Countries Hit': [] } },
+  { id: 'recCrisisCard08', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Global Stock Crash', 'Card Number': 8, 'Countries Hit': [] } },
+  { id: 'recCrisisCard09', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Foreign Propaganda', 'Card Number': 9, 'Countries Hit': [] } },
+  { id: 'recCrisisCard10', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Robot Uprising', 'Card Number': 10, 'Countries Hit': [] } },
+  { id: 'recCrisisCard11', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Oil Boom', 'Card Number': 11, 'Countries Hit': [] } },
+  { id: 'recCrisisCard12', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Automation Wave', 'Card Number': 12, Rounds: 2, 'Countries Hit': [CID.E], 'Started Round': 2, Status: 'Active' } },
+  { id: 'recCrisisCard13', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Airborne Disease', 'Card Number': 13, 'Countries Hit': [] } },
+  { id: 'recCrisisCard14', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Stolen Warheads', 'Card Number': 14, Rounds: 2, 'Countries Hit': [] } },
+  { id: 'recCrisisCard15', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Coup in the Capital', 'Card Number': 15, 'Countries Hit': [] } },
+  { id: 'recCrisisCard16', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Brain Dump', 'Card Number': 16, 'Countries Hit': [] } },
+  { id: 'recCrisisCard17', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Election Fraud', 'Card Number': 17, Rounds: 1, 'Countries Hit': [] } },
+  { id: 'recCrisisCard18', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Anti-war Protests', 'Card Number': 18, Rounds: 3, 'Countries Hit': [] } },
+  { id: 'recCrisisCard19', createdTime: '2026-11-23T09:00:00.000Z', fields: { Name: 'Unidentified Drones', 'Card Number': 19, 'Countries Hit': [] } },
 ]
 
 // ── Convenience bundle ────────────────────────────────────────────────────────

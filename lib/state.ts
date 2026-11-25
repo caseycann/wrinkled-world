@@ -6,6 +6,7 @@
 import { stageDefinition, crisisRoundsLeft, crisisRunningFor, type StageName } from './rules'
 import { getMockDb, rollUpCountries } from './mock'
 import { currentStageRecord } from './stage'
+import { cardLength, crisisOnBoard, fixedRounds, type LengthType } from './crises'
 import {
   fetchCountries,
   fetchTransactions,
@@ -54,20 +55,23 @@ export interface StageState {
   room: string
 }
 
+// One per crisis card (19), sorted by card number. Cards never drawn have no
+// status. Only cards with onBoard = true are shown on the display.
 export interface CrisisState {
   id: string
   name: string
-  cardNumber: number
+  cardNumber: number | null
   countriesHit: string[]    // Country record IDs
-  startedRound: number
-  lengthType: 'Until solved' | 'Fixed rounds'
-  totalRounds?: number
-  status: 'Active' | 'Solved'
+  startedRound?: number
+  lengthType: LengthType
+  totalRounds?: number      // Fixed rounds only
+  status?: 'Active' | 'Solved'
   solvedRound?: number
   note?: string
   // Computed display fields
-  roundsLeft?: number   // Fixed rounds only: rounds until automatically over
-  runningFor?: number   // Until solved + Active only: rounds elapsed so far
+  onBoard: boolean      // active, started, and (if fixed) rounds left > 0
+  roundsLeft?: number   // Fixed rounds + on board: rounds until automatically over
+  runningFor?: number   // Until solved + on board: rounds elapsed so far
 }
 
 export interface RecentTransaction {
@@ -89,7 +93,7 @@ export interface RecentTransaction {
 export interface GameState {
   countries: CountryState[]           // sorted by Number (1–8)
   currentStage: StageState | null     // null only when the Stage Log is empty
-  crises: CrisisState[]              // all crises; UI filters to what's visible
+  crises: CrisisState[]              // all 19 cards; UI shows those with onBoard
   recentTransactions: RecentTransaction[]  // last 20, newest first
   fetchedAt: string                   // ISO datetime for "Updated N seconds ago"
 }
@@ -164,27 +168,32 @@ function buildFromRecords(
   }
 
   // ── Crises ───────────────────────────────────────────────────────────────────
-  const crisisStates: CrisisState[] = crises.map(r => {
-    const f = r.fields
-    const state: CrisisState = {
-      id: r.id,
-      name: f.Name,
-      cardNumber: f['Card Number'],
-      countriesHit: f['Countries Hit'],
-      startedRound: f['Started Round'],
-      lengthType: f['Length Type'],
-      totalRounds: f.Rounds,
-      status: f.Status,
-      solvedRound: f['Solved Round'],
-      note: f.Note,
-    }
-    if (f['Length Type'] === 'Fixed rounds' && f.Rounds !== undefined) {
-      state.roundsLeft = crisisRoundsLeft(f.Rounds, f['Started Round'], currentRound)
-    } else if (f['Length Type'] === 'Until solved' && f.Status === 'Active') {
-      state.runningFor = crisisRunningFor(f['Started Round'], currentRound)
-    }
-    return state
-  })
+  const crisisStates: CrisisState[] = [...crises]
+    .sort((a, b) => (a.fields['Card Number'] ?? Infinity) - (b.fields['Card Number'] ?? Infinity))
+    .map(r => {
+      const f = r.fields
+      const rounds = fixedRounds(f)
+      const onBoard = crisisOnBoard(f, currentRound)
+      const state: CrisisState = {
+        id: r.id,
+        name: f.Name,
+        cardNumber: f['Card Number'] ?? null,
+        countriesHit: f['Countries Hit'],
+        startedRound: f['Started Round'],
+        lengthType: cardLength(f),
+        totalRounds: rounds ?? undefined,
+        status: f.Status,
+        solvedRound: f['Solved Round'],
+        note: f.Note,
+        onBoard,
+      }
+      const started = f['Started Round']
+      if (onBoard && started !== undefined) {
+        if (rounds !== null) state.roundsLeft = crisisRoundsLeft(rounds, started, currentRound)
+        else state.runningFor = crisisRunningFor(started, currentRound)
+      }
+      return state
+    })
 
   // ── Recent transactions (last 20, newest first) ───────────────────────────────
   const recentTransactions: RecentTransaction[] = [...transactions]

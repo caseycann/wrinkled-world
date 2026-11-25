@@ -25,7 +25,6 @@ export const TX_TYPE_OPTIONS = [
 export const CONSOLE_TX_TYPES = [
   'Income', 'Purchase', 'Auction', 'Fine', 'Crisis damage', 'Gift', 'Loan', 'Correction',
 ] as const satisfies readonly (typeof TX_TYPE_OPTIONS)[number][]
-export const LENGTH_TYPE_OPTIONS = ['Until solved', 'Fixed rounds'] as const
 export const CRISIS_STATUS_OPTIONS = ['Active', 'Solved'] as const
 
 // ── Field schemas ─────────────────────────────────────────────────────────────
@@ -78,14 +77,16 @@ export const RoundSnapshotFieldsSchema = z.object({
   'Standard of Living': z.number().int().default(0),
 })
 
+// One row per crisis card (19). A card that has never been drawn has only Name,
+// Card Number and (for fixed-length cards) Rounds. Drawing a card fills in the
+// rest of that same row; a blank Rounds means the card runs until solved.
 export const CrisisFieldsSchema = z.object({
-  Name: z.string(),
-  'Card Number': z.number().int(),
+  Name: z.string().default(''),
+  'Card Number': z.number().int().optional(),
   'Countries Hit': z.array(z.string()).default([]),  // link to Countries (multiple)
-  'Started Round': z.number().int(),
-  'Length Type': z.enum(LENGTH_TYPE_OPTIONS),
-  Rounds: z.number().int().optional(),              // only for Fixed rounds crises
-  Status: z.enum(CRISIS_STATUS_OPTIONS),
+  'Started Round': z.number().int().optional(),
+  Rounds: z.number().int().optional(),              // blank = until solved
+  Status: z.enum(CRISIS_STATUS_OPTIONS).optional(),  // blank = never drawn
   'Solved Round': z.number().int().optional(),
   Note: z.string().optional(),
 })
@@ -168,6 +169,26 @@ export function roundSnapshotCreateFields(p: {
     Education: p.education,
     'Standard of Living': p.standardOfLiving,
   }
+}
+
+// Drawing a card fills in its row. Clears what a previous draw left behind.
+// Never writes Name, Card Number or Rounds (teachers edit those in Airtable).
+export function crisisAddFields(p: {
+  countryIds: string[]
+  startedRound: number
+  note?: string
+}) {
+  return {
+    'Countries Hit': p.countryIds,
+    'Started Round': p.startedRound,
+    Status: 'Active' as const,
+    'Solved Round': null,
+    Note: p.note ?? null,
+  }
+}
+
+export function crisisSolveFields(solvedRound: number) {
+  return { Status: 'Solved' as const, 'Solved Round': solvedRound }
 }
 
 // ── Inferred TypeScript types ─────────────────────────────────────────────────

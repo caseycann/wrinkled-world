@@ -57,7 +57,7 @@ app/
 lib/
   rules.ts                  EVERY game number and pure rules function (single source of truth)
   stage.ts                  pure Advance/Undo planners (which Stage Log / snapshot rows to write)
-  crises.ts                 the 19 crisis cards (number, name, length)
+  crises.ts                 pure crisis logic: card length, on-the-board check, add/solve planners
   airtable.ts               the ONLY module that talks to Airtable
   schema.ts                 table names, field names, zod schemas
   state.ts                  builds the cached GameState from Airtable or mock data
@@ -106,7 +106,7 @@ Field names below are exact (capitals and spaces). Each table's first field is i
 | Transactions | change to one country | Label (formula, primary), Country (link, single), Round (number), Stage (single select), Type (single select), Money Change, Military Change, Health Change, Education Change, Standard of Living Change (numbers, may be negative), Note (long text), Entered By (single select, unused), Voided (checkbox), Created (created time) |
 | Stage Log | stage change | Label (formula, primary), Round (number), Stage (single select), Started At (date with time), Undone (checkbox), Entered By (single select, unused), Created (created time) |
 | Round Snapshots | country per finished round | Label (formula, primary), Round (number), Country (link, single), Federal Reserve (number, may be negative), Military, Health, Education, Standard of Living (numbers) |
-| Crises | crisis on the board | Name (text, primary), Card Number (number), Countries Hit (link, multiple), Started Round (number), Length Type (single select: Until solved, Fixed rounds), Rounds (number), Status (single select: Active, Solved), Solved Round (number), Note (long text) |
+| Crises | crisis card (19) | Name (text, primary), Card Number (number), Countries Hit (link, multiple), Started Round (number), Rounds (number; blank = until solved), Status (single select: Active, Solved; blank = never drawn), Solved Round (number), Note (long text) |
 
 Stage options: Session 0, Stage Setting, Plan, Act/Negotiate, Report, Reaction, Consequences.
 
@@ -178,8 +178,18 @@ when the win conditions are met.
 
 ## Crises
 
-`lib/crises.ts` lists the 19 cards by number and name. Fixed-length cards: Anti-War Protests (3 rounds),
-Automation Wave (2 rounds), Stolen Warheads (1 round). Every other card runs until a teacher marks it solved.
+The 19 cards live in the Airtable Crises table, one row per card, so teachers can rename, renumber or
+change lengths there. The app never writes Name, Card Number or Rounds. A number in `Rounds` makes a card
+fixed-length (currently Anti-war Protests 3 rounds, Automation Wave 2, Stolen Warheads 2, Election Fraud 1);
+a blank `Rounds` means it runs until a teacher marks it solved.
+
+- **Add** fills in that card's row: Countries Hit, Started Round = current round, Status = Active, Note,
+  and clears Solved Round. A card already on the board can't be added again; a solved or finished card can
+  be drawn again (its row is reused, replacing its last use).
+- **Solve** sets Status = Solved and Solved Round = current round. Any active crisis can be solved at any
+  time, fixed-length or not. This is also how a crisis added by mistake is removed.
+- A crisis whose Started Round is later than the current round (after an Undo) is hidden until play
+  reaches that round again.
 
 Nothing counts down in Airtable. For a Fixed rounds crisis, the app computes
 `rounds left = Rounds - (current round - Started Round)`; at 0 or below it is over and no longer shown.

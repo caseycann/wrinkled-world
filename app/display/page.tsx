@@ -50,11 +50,7 @@ export default function DisplayPage() {
   const left  = data.countries.filter(c => c.number <= 4)
   const right = data.countries.filter(c => c.number >= 5)
 
-  const visibleCrises = data.crises.filter(c => {
-    if (c.status === 'Solved') return false
-    if (c.lengthType === 'Fixed rounds') return (c.roundsLeft ?? 0) > 0
-    return true
-  })
+  const visibleCrises = data.crises.filter(c => c.onBoard)
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-gray-950 text-white">
