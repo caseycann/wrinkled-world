@@ -4,7 +4,7 @@
 // uses mock data.
 
 import { stageDefinition, crisisRoundsLeft, crisisRunningFor, type StageName } from './rules'
-import { getMockDb } from './mock'
+import { getMockDb, rollUpCountries } from './mock'
 import { currentStageRecord } from './stage'
 import {
   fetchCountries,
@@ -82,7 +82,6 @@ export interface RecentTransaction {
   educationChange: number
   standardOfLivingChange: number
   note?: string
-  enteredBy?: string
   voided: boolean
   createdTime: string
 }
@@ -203,7 +202,6 @@ function buildFromRecords(
       educationChange: r.fields['Education Change'] ?? 0,
       standardOfLivingChange: r.fields['Standard of Living Change'] ?? 0,
       note: r.fields.Note,
-      enteredBy: r.fields['Entered By'],
       voided: r.fields.Voided,
       createdTime: r.createdTime,
     }))
@@ -222,8 +220,8 @@ function buildFromRecords(
 export async function buildGameState(): Promise<GameState> {
   if (process.env.AIRTABLE_MODE !== 'live') {
     const { countries, transactions, stageLog, roundSnapshots, crises } = getMockDb()
-    // Copy arrays: buildFromRecords sorts countries in place.
-    return buildFromRecords([...countries], transactions, stageLog, roundSnapshots, crises)
+    // rollUpCountries returns a new array (buildFromRecords sorts in place).
+    return buildFromRecords(rollUpCountries(countries, transactions), transactions, stageLog, roundSnapshots, crises)
   }
 
   const [countries, transactions, stageLog, roundSnapshots, crises] = await Promise.all([

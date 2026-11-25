@@ -10,7 +10,7 @@ import {
   fetchStageLog,
   patchRecords,
 } from '@/lib/airtable'
-import { getMockDb, newMockId } from '@/lib/mock'
+import { getMockDb, mockCountriesNow, newMockId } from '@/lib/mock'
 import {
   TABLES,
   roundSnapshotCreateFields,
@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
         ? [[], []]
         : live
           ? await Promise.all([fetchCountries(), fetchRoundSnapshots()])
-          : [getMockDb().countries, getMockDb().roundSnapshots]
+          : [mockCountriesNow(), getMockDb().roundSnapshots]
 
       const plan = planAdvance(stageLog, { countries, roundSnapshots }, now)
       if (!plan) {

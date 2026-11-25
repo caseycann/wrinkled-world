@@ -13,6 +13,10 @@ import {
   undoDeletesSnapshotRound,
   crisisRoundsLeft,
   crisisRunningFor,
+  parseWholeChange,
+  applyChanges,
+  tokensBelowZero,
+  hasAnyChange,
   type Tier,
 } from '@/lib/rules'
 
@@ -358,4 +362,69 @@ describe('SESSION_ZERO', () => {
   it('minutes is 0 (no countdown)', () => {
     expect(SESSION_ZERO.minutes).toBe(0)
   })
+})
+
+// ── Teacher console changes ───────────────────────────────────────────────────
+
+describe('parseWholeChange', () => {
+  it.each([
+    ['', 0], ['   ', 0], ['0', 0], ['5', 5], ['+5', 5], ['-5', -5], [' 12 ', 12], ['-0', 0], ['007', 7],
+  ])('accepts %j as %i', (text, value) => {
+    expect(parseWholeChange(text)).toEqual({ ok: true, value })
+  })
+
+  it('turns -0 into 0 (not negative zero)', () => {
+    const r = parseWholeChange('-0')
+    expect(r.ok && Object.is(r.value, 0)).toBe(true)
+  })
+
+  it.each(['1.5', '2.0', '.5', '-', '+', 'abc', '5a', '1,000', '1e3', '- 5', '5-', 'Infinity', 'NaN'])(
+    'refuses %j',
+    text => {
+      expect(parseWholeChange(text)).toEqual({ ok: false, reason: 'Whole numbers only' })
+    },
+  )
+
+  it('refuses numbers too big to store exactly', () => {
+    expect(parseWholeChange('99999999999999999999')).toEqual({ ok: false, reason: 'Number too big' })
+  })
+})
+
+const base = { federalReserve: 10, military: 5, health: 3, education: 0, standardOfLiving: 16 }
+const zero = { federalReserve: 0, military: 0, health: 0, education: 0, standardOfLiving: 0 }
+
+describe('applyChanges', () => {
+  it('adds each change to its total', () => {
+    expect(applyChanges(base, { federalReserve: -4, military: 2, health: -1, education: 6, standardOfLiving: 0 }))
+      .toEqual({ federalReserve: 6, military: 7, health: 2, education: 6, standardOfLiving: 16 })
+  })
+
+  it('lets money go below 0 (a loan)', () => {
+    expect(applyChanges(base, { ...zero, federalReserve: -15 }).federalReserve).toBe(-5)
+  })
+
+  it('has no upper limit on tokens', () => {
+    expect(applyChanges(base, { ...zero, standardOfLiving: 100 }).standardOfLiving).toBe(116)
+  })
+})
+
+describe('tokensBelowZero', () => {
+  it('allows a token to land exactly on 0', () => {
+    expect(tokensBelowZero(applyChanges(base, { ...zero, health: -3 }))).toEqual([])
+  })
+
+  it('flags a token at -1', () => {
+    expect(tokensBelowZero(applyChanges(base, { ...zero, health: -4 }))).toEqual(['health'])
+  })
+
+  it('flags every token below 0, and never money', () => {
+    const t = applyChanges(base, { federalReserve: -50, military: -6, health: 0, education: -1, standardOfLiving: -17 })
+    expect(tokensBelowZero(t)).toEqual(['military', 'education', 'standardOfLiving'])
+  })
+})
+
+describe('hasAnyChange', () => {
+  it('is false for all zeros', () => expect(hasAnyChange(zero)).toBe(false))
+  it('is true for a money-only change', () => expect(hasAnyChange({ ...zero, federalReserve: -1 })).toBe(true))
+  it('is true for a token-only change', () => expect(hasAnyChange({ ...zero, education: 1 })).toBe(true))
 })

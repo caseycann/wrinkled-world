@@ -5,7 +5,7 @@
 A classroom tracker for **Wrinkled World**, a two-week economy game played by 5th graders.
 Eight student countries (A/1 through H/8) earn money, buy tokens and survive crises.
 The tracker shows the game's money, token counts, current stage, active crises and a live
-dice-tower camera on a projector. One teacher at a time (Casey or Luke) enters data for the countries.
+dice-tower camera on a projector. One teacher at a time enters data for the countries. The app does not record which teacher.
 
 **In scope:** each country's Federal Reserve (money) and its four token counts, stage/round
 control with undo, crisis tracking, the dice cam, and a teacher console for entering changes.
@@ -62,6 +62,8 @@ lib/
   schema.ts                 table names, field names, zod schemas
   state.ts                  builds the cached GameState from Airtable or mock data
   mock.ts                   mock data, plus an in-memory store that write routes change in mock mode
+                            (country totals are rolled up from non-voided mock transactions, like Airtable)
+  transactions.ts           pure Save planner for the teacher console (checks rows against fresh totals)
   auth.ts                   PIN check helpers
 components/                 UI components (display/, teacher/, shared/)
 tests/                      Vitest tests
@@ -101,14 +103,17 @@ Field names below are exact (capitals and spaces). Each table's first field is i
 | Table | One row per | Fields (type) |
 | --- | --- | --- |
 | Countries | country (8) | Letter (text, primary), Number (number), Name (text), Council (single select: Ratification, Finance, Justice, Defense), Transactions (link, inverse), Round Snapshots (link, inverse), Crises (link, inverse); rollups of non-voided Transactions: Federal Reserve, Military, Health, Education, Standard of Living |
-| Transactions | change to one country | Label (formula, primary), Country (link, single), Round (number), Stage (single select), Type (single select), Money Change, Military Change, Health Change, Education Change, Standard of Living Change (numbers, may be negative), Note (long text), Entered By (single select: Casey, Luke), Voided (checkbox), Created (created time) |
-| Stage Log | stage change | Label (formula, primary), Round (number), Stage (single select), Started At (date with time), Undone (checkbox), Entered By (single select), Created (created time) |
+| Transactions | change to one country | Label (formula, primary), Country (link, single), Round (number), Stage (single select), Type (single select), Money Change, Military Change, Health Change, Education Change, Standard of Living Change (numbers, may be negative), Note (long text), Entered By (single select, unused), Voided (checkbox), Created (created time) |
+| Stage Log | stage change | Label (formula, primary), Round (number), Stage (single select), Started At (date with time), Undone (checkbox), Entered By (single select, unused), Created (created time) |
 | Round Snapshots | country per finished round | Label (formula, primary), Round (number), Country (link, single), Federal Reserve (number, may be negative), Military, Health, Education, Standard of Living (numbers) |
 | Crises | crisis on the board | Name (text, primary), Card Number (number), Countries Hit (link, multiple), Started Round (number), Length Type (single select: Until solved, Fixed rounds), Rounds (number), Status (single select: Active, Solved), Solved Round (number), Note (long text) |
 
 Stage options: Session 0, Stage Setting, Plan, Act/Negotiate, Report, Reaction, Consequences.
 
 Never write to formula, rollup, created-time or inverse link fields; Airtable computes them.
+
+The app does not track who entered a change. It never reads or writes the `Entered By` fields;
+they can be deleted from the base later (a schema change, so ask first).
 
 Transaction types: Starting roll, Income, Purchase, Auction, Fine, Crisis damage, Gift, Loan,
 Repayment, Correction, Global Boom. The type is a label for the history only; the app never
@@ -169,7 +174,7 @@ when the win conditions are met.
 - The UI asks for confirmation only when a new round starts ("Start Round 5?"), including Session 0 → Round 1.
 - The countdown is computed from `Started At` plus the stage's minutes. **Never auto-advance.** At 0,
   play a chime and pulse the button. The countdown corrects for the display computer's clock using
-  `serverNow` from `/api/state`. Stage Log `Entered By` is left blank (the session doesn't know which teacher).
+  `serverNow` from `/api/state`.
 
 ## Crises
 
@@ -193,7 +198,7 @@ Because this is computed, Undo needs no crisis changes. "Until solved" crises sh
   On an error, keep showing the last good data with a small warning.
 - **Teacher console (one teacher at a time):** a grid with one row per country and five whole-number
   change fields (Money, Military, Health, Education, Standard of Living), a Type dropdown (Income, Purchase,
-  Auction, Fine, Crisis damage, Gift, Loan, Correction) and a Note. Each field shows a live preview of the
+  Auction, Fine, Crisis damage, Gift, Loan, Correction) and a Note, both per row. Each field shows a live preview of the
   new total, so students can check their own math against it. Refuse decimals and any change that takes a
   token count below 0. Save writes one Transactions row per changed country, in batches of up to 10.
   Add an activity feed of the last 20 rows with a Void button on each, a "Refresh from Airtable" button,

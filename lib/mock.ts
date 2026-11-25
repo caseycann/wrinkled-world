@@ -70,103 +70,91 @@ export const mockTransactions: TransactionRecord[] = [
   // Round 0 — starting rolls
   { id: 'recTxn001', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.A], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Casey', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn002', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.B], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Casey', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn003', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.C], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Casey', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn004', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.D], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Casey', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn005', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.E], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Luke', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn006', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.F], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Luke', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn007', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.G], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Luke', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
   { id: 'recTxn008', createdTime: '2026-11-23T09:01:00.000Z', fields: {
     Country: [CID.H], Round: 0, Stage: 'Session 0', Type: 'Starting roll',
-    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8,
-    'Entered By': 'Luke', Voided: false,
+    'Money Change': 20, 'Military Change': 8, 'Health Change': 8, 'Education Change': 8, 'Standard of Living Change': 8, Voided: false,
   }},
 
   // Round 1 — income (Report stage)
   { id: 'recTxn009', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.A], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 5, 'Entered By': 'Casey', Voided: false,
+    'Money Change': 5, Voided: false,
   }},
   { id: 'recTxn010', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.B], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 6, 'Entered By': 'Casey', Voided: false,
+    'Money Change': 6, Voided: false,
   }},
   { id: 'recTxn011', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.C], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 8, 'Entered By': 'Casey', Voided: false,
+    'Money Change': 8, Voided: false,
   }},
   { id: 'recTxn012', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.D], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 8, 'Entered By': 'Casey', Voided: false,
+    'Money Change': 8, Voided: false,
   }},
   { id: 'recTxn013', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.E], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 10, 'Entered By': 'Luke', Voided: false,
+    'Money Change': 10, Voided: false,
   }},
   { id: 'recTxn014', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.F], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 10, 'Entered By': 'Luke', Voided: false,
+    'Money Change': 10, Voided: false,
   }},
   { id: 'recTxn015', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.G], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 8, 'Entered By': 'Luke', Voided: false,
+    'Money Change': 8, Voided: false,
   }},
   { id: 'recTxn016', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Country: [CID.H], Round: 1, Stage: 'Report', Type: 'Income',
-    'Money Change': 6, 'Entered By': 'Luke', Voided: false,
+    'Money Change': 6, Voided: false,
   }},
 
   // Round 1 — C buys 2 military tokens (Act/Negotiate)
   { id: 'recTxn017', createdTime: '2026-11-24T09:12:00.000Z', fields: {
     Country: [CID.C], Round: 1, Stage: 'Act/Negotiate', Type: 'Purchase',
-    'Money Change': -6, 'Military Change': 2, Note: 'Bought 2 military',
-    'Entered By': 'Casey', Voided: false,
+    'Money Change': -6, 'Military Change': 2, Note: 'Bought 2 military', Voided: false,
   }},
 
   // Round 1 — Health Pandemic crisis damages A and B (Consequences)
   { id: 'recTxn018', createdTime: '2026-11-24T09:36:00.000Z', fields: {
     Country: [CID.A], Round: 1, Stage: 'Consequences', Type: 'Crisis damage',
-    'Health Change': -5, Note: 'Health Pandemic',
-    'Entered By': 'Casey', Voided: false,
+    'Health Change': -5, Note: 'Health Pandemic', Voided: false,
   }},
   { id: 'recTxn019', createdTime: '2026-11-24T09:36:00.000Z', fields: {
     Country: [CID.B], Round: 1, Stage: 'Consequences', Type: 'Crisis damage',
-    'Health Change': -4, Note: 'Health Pandemic',
-    'Entered By': 'Casey', Voided: false,
+    'Health Change': -4, Note: 'Health Pandemic', Voided: false,
   }},
 
   // Round 1 — Trade War damages E's standard of living (Consequences)
   { id: 'recTxn020', createdTime: '2026-11-24T09:36:00.000Z', fields: {
     Country: [CID.E], Round: 1, Stage: 'Consequences', Type: 'Crisis damage',
-    'Standard of Living Change': -5, Note: 'Trade War',
-    'Entered By': 'Luke', Voided: false,
+    'Standard of Living Change': -5, Note: 'Trade War', Voided: false,
   }},
 ]
 
@@ -176,39 +164,39 @@ export const mockTransactions: TransactionRecord[] = [
 export const mockStageLog: StageLogRecord[] = [
   { id: 'recStage01', createdTime: '2026-11-23T09:00:00.000Z', fields: {
     Round: 0, Stage: 'Session 0', 'Started At': '2026-11-23T09:00:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
   { id: 'recStage02', createdTime: '2026-11-24T09:00:00.000Z', fields: {
     Round: 1, Stage: 'Stage Setting', 'Started At': '2026-11-24T09:00:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
   { id: 'recStage03', createdTime: '2026-11-24T09:05:00.000Z', fields: {
     Round: 1, Stage: 'Plan', 'Started At': '2026-11-24T09:05:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
   { id: 'recStage04', createdTime: '2026-11-24T09:10:00.000Z', fields: {
     Round: 1, Stage: 'Act/Negotiate', 'Started At': '2026-11-24T09:10:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
   { id: 'recStage05', createdTime: '2026-11-24T09:20:00.000Z', fields: {
     Round: 1, Stage: 'Report', 'Started At': '2026-11-24T09:20:00.000Z',
-    Undone: false, 'Entered By': 'Luke',
+    Undone: false,
   }},
   { id: 'recStage06', createdTime: '2026-11-24T09:30:00.000Z', fields: {
     Round: 1, Stage: 'Reaction', 'Started At': '2026-11-24T09:30:00.000Z',
-    Undone: false, 'Entered By': 'Luke',
+    Undone: false,
   }},
   { id: 'recStage07', createdTime: '2026-11-24T09:35:00.000Z', fields: {
     Round: 1, Stage: 'Consequences', 'Started At': '2026-11-24T09:35:00.000Z',
-    Undone: false, 'Entered By': 'Luke',
+    Undone: false,
   }},
   { id: 'recStage08', createdTime: '2026-11-25T09:00:00.000Z', fields: {
     Round: 2, Stage: 'Stage Setting', 'Started At': '2026-11-25T09:00:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
   { id: 'recStage09', createdTime: '2026-11-25T09:05:00.000Z', fields: {
     Round: 2, Stage: 'Plan', 'Started At': '2026-11-25T09:05:00.000Z',
-    Undone: false, 'Entered By': 'Casey',
+    Undone: false,
   }},
 ]
 
@@ -297,4 +285,35 @@ let mockIdCounter = 0
 export function newMockId(prefix: string): string {
   mockIdCounter += 1
   return `rec${prefix}${Date.now().toString(36)}${mockIdCounter}`
+}
+
+// ── Mock rollups ──────────────────────────────────────────────────────────────
+// In Airtable, a country's totals are rollups of its non-voided Transactions.
+// Mock mode computes them the same way, so saving or voiding a row changes the
+// totals just as it would in the real base.
+
+export function rollUpCountries(
+  countries: CountryRecord[],
+  transactions: TransactionRecord[],
+): CountryRecord[] {
+  return countries.map(c => {
+    const totals = {
+      'Federal Reserve': 0, Military: 0, Health: 0, Education: 0, 'Standard of Living': 0,
+    }
+    for (const t of transactions) {
+      if (t.fields.Voided || t.fields.Country[0] !== c.id) continue
+      totals['Federal Reserve'] += t.fields['Money Change'] ?? 0
+      totals.Military += t.fields['Military Change'] ?? 0
+      totals.Health += t.fields['Health Change'] ?? 0
+      totals.Education += t.fields['Education Change'] ?? 0
+      totals['Standard of Living'] += t.fields['Standard of Living Change'] ?? 0
+    }
+    return { ...c, fields: { ...c.fields, ...totals } }
+  })
+}
+
+// The mock store's countries with up-to-date rollups.
+export function mockCountriesNow(): CountryRecord[] {
+  const db = getMockDb()
+  return rollUpCountries(db.countries, db.transactions)
 }

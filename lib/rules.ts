@@ -138,3 +138,48 @@ export function crisisRoundsLeft(
 export function crisisRunningFor(startedRound: number, currentRound: number): number {
   return currentRound - startedRound + 1
 }
+
+// ── Teacher console changes ───────────────────────────────────────────────────
+// Students do the math; the teacher types whole-number changes. These helpers
+// only check the input and preview the new totals. They never compute income,
+// damage, prices or any other game amount.
+
+export const TOKEN_KEYS = ['military', 'health', 'education', 'standardOfLiving'] as const
+export type TokenKey = (typeof TOKEN_KEYS)[number]
+export const CHANGE_KEYS = ['federalReserve', ...TOKEN_KEYS] as const
+export type ChangeKey = (typeof CHANGE_KEYS)[number]
+
+// A country's money (whole billions) and token totals, or a change to them.
+export type Totals = Record<ChangeKey, number>
+
+export type ParsedChange = { ok: true; value: number } | { ok: false; reason: string }
+
+// Reads one change field. Blank means 0. Accepts an optional + or - sign and
+// digits only: no decimals, no commas, no exponents.
+export function parseWholeChange(text: string): ParsedChange {
+  const s = text.trim()
+  if (s === '') return { ok: true, value: 0 }
+  if (!/^[+-]?\d+$/.test(s)) return { ok: false, reason: 'Whole numbers only' }
+  const value = Number(s)
+  if (!Number.isSafeInteger(value)) return { ok: false, reason: 'Number too big' }
+  return { ok: true, value: value === 0 ? 0 : value } // turns -0 into 0
+}
+
+export function applyChanges(totals: Totals, changes: Totals): Totals {
+  return {
+    federalReserve: totals.federalReserve + changes.federalReserve,
+    military: totals.military + changes.military,
+    health: totals.health + changes.health,
+    education: totals.education + changes.education,
+    standardOfLiving: totals.standardOfLiving + changes.standardOfLiving,
+  }
+}
+
+// Token counts never go below 0. Money may (that country has a loan).
+export function tokensBelowZero(totals: Totals): TokenKey[] {
+  return TOKEN_KEYS.filter(k => totals[k] < 0)
+}
+
+export function hasAnyChange(changes: Totals): boolean {
+  return CHANGE_KEYS.some(k => changes[k] !== 0)
+}

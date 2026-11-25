@@ -21,7 +21,10 @@ export const TX_TYPE_OPTIONS = [
   'Starting roll', 'Income', 'Purchase', 'Auction', 'Fine',
   'Crisis damage', 'Gift', 'Loan', 'Repayment', 'Correction', 'Global Boom',
 ] as const
-export const ENTERED_BY_OPTIONS = ['Casey', 'Luke'] as const
+// The Type choices the teacher console offers.
+export const CONSOLE_TX_TYPES = [
+  'Income', 'Purchase', 'Auction', 'Fine', 'Crisis damage', 'Gift', 'Loan', 'Correction',
+] as const satisfies readonly (typeof TX_TYPE_OPTIONS)[number][]
 export const LENGTH_TYPE_OPTIONS = ['Until solved', 'Fixed rounds'] as const
 export const CRISIS_STATUS_OPTIONS = ['Active', 'Solved'] as const
 
@@ -55,7 +58,6 @@ export const TransactionFieldsSchema = z.object({
   'Education Change': z.number().int().optional(),
   'Standard of Living Change': z.number().int().optional(),
   Note: z.string().optional(),
-  'Entered By': z.enum(ENTERED_BY_OPTIONS).optional(),
   Voided: z.boolean().default(false),
 })
 
@@ -64,7 +66,6 @@ export const StageLogFieldsSchema = z.object({
   Stage: z.enum(STAGE_OPTIONS),
   'Started At': z.string(),                      // ISO datetime
   Undone: z.boolean().default(false),
-  'Entered By': z.enum(ENTERED_BY_OPTIONS).optional(),
 })
 
 export const RoundSnapshotFieldsSchema = z.object({
@@ -111,6 +112,29 @@ export function stageLogCreateFields(p: {
   startedAt: string
 }): Pick<StageLogFields, 'Round' | 'Stage' | 'Started At'> {
   return { Round: p.round, Stage: p.stage, 'Started At': p.startedAt }
+}
+
+export function transactionCreateFields(p: {
+  countryId: string
+  round: number
+  stage: (typeof STAGE_OPTIONS)[number]
+  type: (typeof TX_TYPE_OPTIONS)[number]
+  changes: { federalReserve: number; military: number; health: number; education: number; standardOfLiving: number }
+  note?: string
+}): Omit<TransactionFields, 'Voided'> {
+  const f: Omit<TransactionFields, 'Voided'> = {
+    Country: [p.countryId],
+    Round: p.round,
+    Stage: p.stage,
+    Type: p.type,
+    'Money Change': p.changes.federalReserve,
+    'Military Change': p.changes.military,
+    'Health Change': p.changes.health,
+    'Education Change': p.changes.education,
+    'Standard of Living Change': p.changes.standardOfLiving,
+  }
+  if (p.note) f.Note = p.note
+  return f
 }
 
 export function stageLogUndoneFields(): Pick<StageLogFields, 'Undone'> {
