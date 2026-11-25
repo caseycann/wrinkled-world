@@ -102,13 +102,19 @@ Field names below are exact (capitals and spaces). Each table's first field is i
 
 | Table | One row per | Fields (type) |
 | --- | --- | --- |
-| Countries | country (8) | Letter (text, primary), Number (number), Name (text), Council (single select: Ratification, Finance, Justice, Defense), Transactions (link, inverse), Round Snapshots (link, inverse), Crises (link, inverse); rollups of non-voided Transactions: Federal Reserve, Military, Health, Education, Standard of Living |
+| Countries | country (8) | Letter (text, primary), `Number ` (text holding a whole number; the field name ends with a space), Island (text, the country's name), Council (single select: Council of Ratification, Council of Finance, Council of Justice, Council of Defense; may be blank), Transactions (link, inverse), Round Snapshots (link, inverse), Crises (link, inverse); rollups of non-voided Transactions: Federal Reserve, Military, Health, Education, Standard of Living |
 | Transactions | change to one country | Label (formula, primary), Country (link, single), Round (number), Stage (single select), Type (single select), Money Change, Military Change, Health Change, Education Change, Standard of Living Change (numbers, may be negative), Note (long text), Entered By (single select, unused), Voided (checkbox), Created (created time) |
-| Stage Log | stage change | Label (formula, primary), Round (number), Stage (single select), Started At (date with time), Undone (checkbox), Entered By (single select, unused), Created (created time) |
+| Stage Log | stage change | Label (formula, primary), Round (number), Stage (single select), Started at (date with time), Undone (checkbox), Entered By (single select, unused), Created (created time) |
 | Round Snapshots | country per finished round | Label (formula, primary), Round (number), Country (link, single), Federal Reserve (number, may be negative), Military, Health, Education, Standard of Living (numbers) |
 | Crises | crisis card (19) | Name (text, primary), Card Number (number), Countries Hit (link, multiple), Started Round (number), Rounds (number; blank = until solved), Status (single select: Active, Solved; blank = never drawn), Solved Round (number), Note (long text) |
 
-Stage options: Session 0, Stage Setting, Plan, Act/Negotiate, Report, Reaction, Consequences.
+Stage options: Session 0, Stage Setting, Plan, Negotiate, Report, Reaction, Consequences.
+
+Completely blank rows (such as Airtable's starter rows) are skipped when reading. A row with some data
+that doesn't match the schema still fails the read, so mistakes are noticed.
+
+The current stage is found by round and stage order, not by `Created`: Airtable's created time only has
+whole seconds, so two quick changes can share it.
 
 Never write to formula, rollup, created-time or inverse link fields; Airtable computes them.
 
@@ -156,7 +162,7 @@ when the win conditions are met.
 | --- | --- | --- |
 | Stage Setting | 5 | Media Lab |
 | Plan | 5 | Media Lab |
-| Act/Negotiate | 10 | CDL |
+| Negotiate | 10 | CDL |
 | Report | 10 | Media Lab |
 | Reaction | 5 | CDL |
 | Consequences | 10 | Media Lab |
@@ -170,11 +176,11 @@ when the win conditions are met.
 - `POST /api/stage` takes `{ action, expect }`, where `expect` is the current Stage Log row ID the button
   showed. If the stage has changed since, it writes nothing and returns 409 (protects against double taps
   and two teachers).
-- **Undo** marks the newest non-undone Stage Log row `Undone`, sets the restored row's `Started At` to now
+- **Undo** marks the newest non-undone Stage Log row `Undone`, sets the restored row's `Started at` to now
   (so its timer restarts), and, if the undone step was a round rollover, deletes that round's 8 snapshots.
   Undo can be repeated.
 - The UI asks for confirmation only when a new round starts ("Start Round 5?"), including Session 0 → Round 1.
-- The countdown is computed from `Started At` plus the stage's minutes. **Never auto-advance.** At 0,
+- The countdown is computed from `Started at` plus the stage's minutes. **Never auto-advance.** At 0,
   play a chime and pulse the button. The countdown corrects for the display computer's clock using
   `serverNow` from `/api/state`.
 

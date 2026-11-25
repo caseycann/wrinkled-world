@@ -31,7 +31,7 @@ function withFields(rec: CrisisRecord, f: Partial<CrisisFields>): CrisisRecord {
 function stageLogAtRound(round: number): StageLogRecord[] {
   return [{
     id: 'recStageX', createdTime: '2026-11-25T10:00:00.000Z',
-    fields: { Round: round, Stage: 'Plan', 'Started At': '2026-11-25T10:00:00.000Z', Undone: false },
+    fields: { Round: round, Stage: 'Plan', 'Started at': '2026-11-25T10:00:00.000Z', Undone: false },
   }]
 }
 

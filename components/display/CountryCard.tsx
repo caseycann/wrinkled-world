@@ -46,7 +46,7 @@ export function CountryCard({ country }: { country: CountryState }) {
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="text-2xl font-bold leading-snug">{country.name}</div>
-          <div className="text-xl text-gray-400">{country.letter}{country.number} · {country.council}</div>
+          <div className="text-xl text-gray-400">{country.letter}{country.number}{country.council ? ` · ${country.council}` : ''}</div>
         </div>
         {isExiled && (
           <span className="shrink-0 rounded-lg bg-red-600 px-3 py-1 text-xl font-black tracking-widest text-white">

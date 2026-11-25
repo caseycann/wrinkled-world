@@ -16,7 +16,7 @@ function log(rows: [round: number, stage: StageName, undone?: boolean][]): Stage
   return rows.map(([round, stage, undone], i) => ({
     id: `recS${i}`,
     createdTime: new Date(Date.UTC(2026, 10, 1, 9, i)).toISOString(),
-    fields: { Round: round, Stage: stage, 'Started At': '2026-11-01T09:00:00.000Z', Undone: undone ?? false },
+    fields: { Round: round, Stage: stage, 'Started at': '2026-11-01T09:00:00.000Z', Undone: undone ?? false },
   }))
 }
 
@@ -35,14 +35,34 @@ describe('planStart', () => {
   })
 })
 
+// ── Ordering ──────────────────────────────────────────────────────────────────
+
+describe('currentStageRecord ordering', () => {
+  it('finds the right stage when Airtable gives rows the same created time', () => {
+    const sameSecond = '2026-11-25T18:00:00.000Z'
+    const rows: StageLogRecord[] = (['Report', 'Reaction', 'Negotiate'] as const).map((stage, i) => ({
+      id: `recZ${3 - i}`,   // IDs in a different order too
+      createdTime: sameSecond,
+      fields: { Round: 1, Stage: stage, 'Started at': sameSecond, Undone: false },
+    }))
+    expect(currentStageRecord(rows)?.fields.Stage).toBe('Reaction')
+  })
+
+  it('a rollover row is newest even with an older created time', () => {
+    const rows = log([[1, 'Consequences'], [2, 'Stage Setting']])
+    rows[1] = { ...rows[1], createdTime: '2026-01-01T00:00:00.000Z' }
+    expect(currentStageRecord(rows)?.fields).toMatchObject({ Round: 2, Stage: 'Stage Setting' })
+  })
+})
+
 // ── planAdvance ───────────────────────────────────────────────────────────────
 
 describe('planAdvance', () => {
-  it('normal step: Plan → Act/Negotiate, no snapshots', () => {
+  it('normal step: Plan → Negotiate, no snapshots', () => {
     const plan = planAdvance(log([[0, 'Session 0'], [1, 'Stage Setting'], [1, 'Plan']]), noData, NOW)
     expect(plan).toEqual({
       from: { round: 1, stage: 'Plan' },
-      to: { round: 1, stage: 'Act/Negotiate' },
+      to: { round: 1, stage: 'Negotiate' },
       startedAt: NOW,
       createSnapshots: [],
       deleteSnapshotIds: [],
@@ -230,12 +250,12 @@ describe('POST /api/stage (mock mode)', () => {
     const res = await POST(req({ action: 'advance', expect: before }))
     expect(res.status).toBe(409)
     const state = await buildGameState()
-    expect(state.currentStage?.stage).toBe('Act/Negotiate')
+    expect(state.currentStage?.stage).toBe('Negotiate')
   })
 
   it('advance through a rollover and undo it, then undo repeatedly to Session 0', async () => {
     // Mock starts at Round 2 Plan
-    for (const expected of ['Act/Negotiate', 'Report', 'Reaction', 'Consequences']) {
+    for (const expected of ['Negotiate', 'Report', 'Reaction', 'Consequences']) {
       const r = await step('advance')
       expect(r.body).toMatchObject({ ok: true, round: 2, stage: expected })
     }
@@ -273,11 +293,11 @@ describe('POST /api/stage (mock mode)', () => {
   })
 
   it('advance after an undo writes a new row instead of reviving the old one', async () => {
-    await step('advance')        // → Act/Negotiate
+    await step('advance')        // → Negotiate
     await step('undo')           // back to Plan
     const r = await step('advance')
-    expect(r.body).toMatchObject({ round: 2, stage: 'Act/Negotiate' })
-    const actRows = getMockDb().stageLog.filter(s => s.fields.Stage === 'Act/Negotiate' && s.fields.Round === 2)
+    expect(r.body).toMatchObject({ round: 2, stage: 'Negotiate' })
+    const actRows = getMockDb().stageLog.filter(s => s.fields.Stage === 'Negotiate' && s.fields.Round === 2)
     expect(actRows.map(s => s.fields.Undone)).toEqual([true, false])
   })
 })

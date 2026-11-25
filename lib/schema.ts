@@ -12,9 +12,11 @@ export const TABLES = {
 
 // ── Single-select option sets ─────────────────────────────────────────────────
 
-export const COUNCIL_OPTIONS = ['Ratification', 'Finance', 'Justice', 'Defense'] as const
+export const COUNCIL_OPTIONS = [
+  'Council of Ratification', 'Council of Finance', 'Council of Justice', 'Council of Defense',
+] as const
 export const STAGE_OPTIONS = [
-  'Session 0', 'Stage Setting', 'Plan', 'Act/Negotiate',
+  'Session 0', 'Stage Setting', 'Plan', 'Negotiate',
   'Report', 'Reaction', 'Consequences',
 ] as const
 export const TX_TYPE_OPTIONS = [
@@ -34,9 +36,10 @@ export const CRISIS_STATUS_OPTIONS = ['Active', 'Solved'] as const
 
 export const CountryFieldsSchema = z.object({
   Letter: z.string(),
-  Number: z.number().int(),
-  Name: z.string(),
-  Council: z.enum(COUNCIL_OPTIONS),
+  // The Airtable field really is named "Number " (trailing space) and is text.
+  'Number ': z.coerce.number().int(),
+  Island: z.string().default(''),                 // the country's name
+  Council: z.enum(COUNCIL_OPTIONS).optional(),
   // Rollups computed by Airtable from non-voided Transactions
   'Federal Reserve': z.number().default(0),
   Military: z.number().int().default(0),
@@ -63,7 +66,7 @@ export const TransactionFieldsSchema = z.object({
 export const StageLogFieldsSchema = z.object({
   Round: z.number().int(),
   Stage: z.enum(STAGE_OPTIONS),
-  'Started At': z.string(),                      // ISO datetime
+  'Started at': z.string(),                      // ISO datetime
   Undone: z.boolean().default(false),
 })
 
@@ -91,6 +94,25 @@ export const CrisisFieldsSchema = z.object({
   Note: z.string().optional(),
 })
 
+// ── Blank rows ────────────────────────────────────────────────────────────────
+// Airtable tables can hold completely empty rows (e.g. its starter rows). A row
+// with none of these fields is skipped when reading instead of failing the
+// whole read. A row that has some but is malformed still fails loudly.
+export const ROW_KEY_FIELDS: Record<keyof typeof TABLES, string[]> = {
+  Countries: ['Letter', 'Number ', 'Island'],
+  Transactions: ['Country', 'Round', 'Stage', 'Type'],
+  StageLog: ['Round', 'Stage', 'Started at'],
+  RoundSnapshots: ['Country', 'Round'],
+  Crises: ['Name', 'Card Number'],
+}
+
+export function isBlankRow(table: keyof typeof TABLES, fields: Record<string, unknown>): boolean {
+  return ROW_KEY_FIELDS[table].every(k => {
+    const v = fields[k]
+    return v === undefined || v === null || v === '' || (Array.isArray(v) && v.length === 0)
+  })
+}
+
 // ── Airtable record wrappers ──────────────────────────────────────────────────
 
 function airtableRecord<F extends z.ZodTypeAny>(fields: F) {
@@ -111,8 +133,8 @@ export function stageLogCreateFields(p: {
   round: number
   stage: (typeof STAGE_OPTIONS)[number]
   startedAt: string
-}): Pick<StageLogFields, 'Round' | 'Stage' | 'Started At'> {
-  return { Round: p.round, Stage: p.stage, 'Started At': p.startedAt }
+}): Pick<StageLogFields, 'Round' | 'Stage' | 'Started at'> {
+  return { Round: p.round, Stage: p.stage, 'Started at': p.startedAt }
 }
 
 export function transactionCreateFields(p: {
@@ -147,8 +169,8 @@ export function stageLogUndoneFields(): Pick<StageLogFields, 'Undone'> {
   return { Undone: true }
 }
 
-export function stageLogRestartFields(startedAt: string): Pick<StageLogFields, 'Started At'> {
-  return { 'Started At': startedAt }
+export function stageLogRestartFields(startedAt: string): Pick<StageLogFields, 'Started at'> {
+  return { 'Started at': startedAt }
 }
 
 export function roundSnapshotCreateFields(p: {

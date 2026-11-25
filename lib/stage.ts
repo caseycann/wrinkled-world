@@ -5,16 +5,24 @@
 import {
   advanceSnapshotRound,
   nextStageLocation,
+  stageOrder,
   undoDeletesSnapshotRound,
   type StageLocation,
 } from './rules'
 import type { CountryRecord, RoundSnapshotRecord, StageLogRecord } from './schema'
 
-// Non-undone Stage Log rows, oldest first. The last one is the current stage.
+// Non-undone Stage Log rows in game order. The last one is the current stage.
+// Ordered by round and stage, not created time: Airtable's created time only
+// has whole seconds, so two quick advances can tie. Created time, then record
+// ID, only break ties between duplicate rows for the same stage.
 export function activeStageLog(stageLog: StageLogRecord[]): StageLogRecord[] {
   return stageLog
     .filter(r => !r.fields.Undone)
-    .sort((a, b) => Date.parse(a.createdTime) - Date.parse(b.createdTime))
+    .sort((a, b) =>
+      stageOrder(locationOf(a)) - stageOrder(locationOf(b)) ||
+      Date.parse(a.createdTime) - Date.parse(b.createdTime) ||
+      a.id.localeCompare(b.id),
+    )
 }
 
 export function currentStageRecord(stageLog: StageLogRecord[]): StageLogRecord | null {

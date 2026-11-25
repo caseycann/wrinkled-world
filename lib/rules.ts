@@ -26,7 +26,7 @@ export type StageName =
   | 'Session 0'
   | 'Stage Setting'
   | 'Plan'
-  | 'Act/Negotiate'
+  | 'Negotiate'
   | 'Report'
   | 'Reaction'
   | 'Consequences'
@@ -50,7 +50,7 @@ export const SESSION_ZERO: StageDefinition = {
 export const ROUND_STAGES: readonly StageDefinition[] = [
   { name: 'Stage Setting', minutes: 5,  room: 'Media Lab' },
   { name: 'Plan',          minutes: 5,  room: 'Media Lab' },
-  { name: 'Act/Negotiate', minutes: 10, room: 'CDL'       },
+  { name: 'Negotiate', minutes: 10, room: 'CDL'       },
   { name: 'Report',        minutes: 10, room: 'Media Lab' },
   { name: 'Reaction',      minutes: 5,  room: 'CDL'       },
   { name: 'Consequences',  minutes: 10, room: 'Media Lab' },
@@ -68,6 +68,16 @@ export function stageDefinition(stage: StageName): StageDefinition {
 export interface StageLocation {
   round: number
   stage: StageName
+}
+
+// Position of a stage in the whole game: Session 0 is 0, then every round's
+// stages count up in order. Rows that are not undone always move forward, so
+// this orders the Stage Log reliably even when Airtable gives two rows the same
+// created time (it only keeps whole seconds).
+export function stageOrder(loc: StageLocation): number {
+  if (loc.stage === 'Session 0') return 0
+  const idx = ROUND_STAGES.findIndex(s => s.name === loc.stage)
+  return loc.round * ROUND_STAGES.length + idx + 1
 }
 
 // Returns the stage log entry that an Advance action should write.

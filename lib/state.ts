@@ -109,13 +109,13 @@ function buildFromRecords(
 ): GameState {
   // ── Countries ───────────────────────────────────────────────────────────────
   const countryStates: CountryState[] = countries
-    .sort((a, b) => a.fields.Number - b.fields.Number)
+    .sort((a, b) => a.fields['Number '] - b.fields['Number '])
     .map(r => ({
       id: r.id,
       letter: r.fields.Letter,
-      number: r.fields.Number,
-      name: r.fields.Name,
-      council: r.fields.Council,
+      number: r.fields['Number '],
+      name: r.fields.Island,
+      council: r.fields.Council?.replace(/^Council of /, '') ?? '',   // '' when not set
       federalReserve: r.fields['Federal Reserve'],
       military: r.fields.Military,
       health: r.fields.Health,
@@ -133,7 +133,7 @@ function buildFromRecords(
   let currentRound = 0
 
   if (latestLog) {
-    const { Round, Stage, 'Started At': startedAt } = latestLog.fields
+    const { Round, Stage, 'Started at': startedAt } = latestLog.fields
     currentRound = Round
     const def = stageDefinition(Stage)
     currentStage = {

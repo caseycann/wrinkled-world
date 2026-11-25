@@ -5,6 +5,7 @@ import {
   ROUND_STAGES,
   SESSION_ZERO,
   nextStageLocation,
+  stageOrder,
   advanceStartsNewRound,
   advanceSnapshotRound,
   stageDefinition,
@@ -98,7 +99,7 @@ describe('ROUND_STAGES', () => {
     expect(ROUND_STAGES.map((s) => s.name)).toEqual([
       'Stage Setting',
       'Plan',
-      'Act/Negotiate',
+      'Negotiate',
       'Report',
       'Reaction',
       'Consequences',
@@ -138,13 +139,13 @@ describe('nextStageLocation', () => {
       .toEqual({ round: 1, stage: 'Plan' })
   })
 
-  it('Plan → Act/Negotiate', () => {
+  it('Plan → Negotiate', () => {
     expect(nextStageLocation({ round: 1, stage: 'Plan' }))
-      .toEqual({ round: 1, stage: 'Act/Negotiate' })
+      .toEqual({ round: 1, stage: 'Negotiate' })
   })
 
-  it('Act/Negotiate → Report', () => {
-    expect(nextStageLocation({ round: 1, stage: 'Act/Negotiate' }))
+  it('Negotiate → Report', () => {
+    expect(nextStageLocation({ round: 1, stage: 'Negotiate' }))
       .toEqual({ round: 1, stage: 'Report' })
   })
 
@@ -247,7 +248,7 @@ describe('advanceStartsNewRound (when to ask "Start Round N?")', () => {
     expect(advanceStartsNewRound({ round: 9, stage: 'Consequences' })).toBe(true)
   })
 
-  it.each(['Stage Setting', 'Plan', 'Act/Negotiate', 'Report', 'Reaction'] as const)(
+  it.each(['Stage Setting', 'Plan', 'Negotiate', 'Report', 'Reaction'] as const)(
     '%s → no',
     stage => {
       expect(advanceStartsNewRound({ round: 3, stage })).toBe(false)
@@ -262,8 +263,8 @@ describe('stageDefinition', () => {
     expect(stageDefinition('Session 0')).toBe(SESSION_ZERO)
   })
 
-  it('Act/Negotiate → 10 min in CDL', () => {
-    expect(stageDefinition('Act/Negotiate')).toEqual({ name: 'Act/Negotiate', minutes: 10, room: 'CDL' })
+  it('Negotiate → 10 min in CDL', () => {
+    expect(stageDefinition('Negotiate')).toEqual({ name: 'Negotiate', minutes: 10, room: 'CDL' })
   })
 })
 
@@ -427,4 +428,21 @@ describe('hasAnyChange', () => {
   it('is false for all zeros', () => expect(hasAnyChange(zero)).toBe(false))
   it('is true for a money-only change', () => expect(hasAnyChange({ ...zero, federalReserve: -1 })).toBe(true))
   it('is true for a token-only change', () => expect(hasAnyChange({ ...zero, education: 1 })).toBe(true))
+})
+
+// ── stageOrder ────────────────────────────────────────────────────────────────
+
+describe('stageOrder', () => {
+  it('counts up through Session 0 and every round in order, past Round 9', () => {
+    let loc = { round: 0, stage: 'Session 0' as const } as Parameters<typeof stageOrder>[0]
+    let prev = stageOrder(loc)
+    expect(prev).toBe(0)
+    for (let i = 0; i < 6 * 11; i++) {
+      loc = nextStageLocation(loc)
+      const n = stageOrder(loc)
+      expect(n).toBeGreaterThan(prev)
+      prev = n
+    }
+    expect(loc.round).toBe(11)
+  })
 })

@@ -10,6 +10,7 @@ import {
   StageLogRecordSchema,
   RoundSnapshotRecordSchema,
   CrisisRecordSchema,
+  isBlankRow,
   type CountryRecord,
   type TransactionRecord,
   type StageLogRecord,
@@ -57,8 +58,16 @@ const ListResponseSchema = z.object({
   offset: z.string().optional(),
 })
 
-async function fetchAllRecords(table: string): Promise<unknown[]> {
-  const records: unknown[] = []
+type RawRecord = z.infer<typeof ListResponseSchema>['records'][number]
+
+// Reads every row of a table, skipping completely blank rows.
+async function fetchTable(key: keyof typeof TABLES): Promise<RawRecord[]> {
+  const raw = await fetchAllRecords(TABLES[key])
+  return raw.filter(r => !isBlankRow(key, r.fields))
+}
+
+async function fetchAllRecords(table: string): Promise<RawRecord[]> {
+  const records: RawRecord[] = []
   let offset: string | undefined
   do {
     const params = new URLSearchParams({ pageSize: '100' })
@@ -78,27 +87,27 @@ async function fetchAllRecords(table: string): Promise<unknown[]> {
 // ── Table fetches ─────────────────────────────────────────────────────────────
 
 export async function fetchCountries(): Promise<CountryRecord[]> {
-  const raw = await fetchAllRecords(TABLES.Countries)
+  const raw = await fetchTable('Countries')
   return raw.map(r => CountryRecordSchema.parse(r))
 }
 
 export async function fetchTransactions(): Promise<TransactionRecord[]> {
-  const raw = await fetchAllRecords(TABLES.Transactions)
+  const raw = await fetchTable('Transactions')
   return raw.map(r => TransactionRecordSchema.parse(r))
 }
 
 export async function fetchStageLog(): Promise<StageLogRecord[]> {
-  const raw = await fetchAllRecords(TABLES.StageLog)
+  const raw = await fetchTable('StageLog')
   return raw.map(r => StageLogRecordSchema.parse(r))
 }
 
 export async function fetchRoundSnapshots(): Promise<RoundSnapshotRecord[]> {
-  const raw = await fetchAllRecords(TABLES.RoundSnapshots)
+  const raw = await fetchTable('RoundSnapshots')
   return raw.map(r => RoundSnapshotRecordSchema.parse(r))
 }
 
 export async function fetchCrises(): Promise<CrisisRecord[]> {
-  const raw = await fetchAllRecords(TABLES.Crises)
+  const raw = await fetchTable('Crises')
   return raw.map(r => CrisisRecordSchema.parse(r))
 }
 

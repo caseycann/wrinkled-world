@@ -29,35 +29,35 @@ const CID = {
 
 export const mockCountries: CountryRecord[] = [
   { id: CID.A, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'A', Number: 1, Name: 'Arvenia', Council: 'Finance',
+    Letter: 'A', 'Number ': 1, Island: 'Arvenia', Council: 'Council of Finance',
     'Federal Reserve': 25, Military: 8, Health: 3, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.B, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'B', Number: 2, Name: 'Boralia', Council: 'Justice',
+    Letter: 'B', 'Number ': 2, Island: 'Boralia', Council: 'Council of Justice',
     'Federal Reserve': 26, Military: 8, Health: 4, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.C, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'C', Number: 3, Name: 'Crystara', Council: 'Defense',
+    Letter: 'C', 'Number ': 3, Island: 'Crystara', Council: 'Council of Defense',
     'Federal Reserve': 22, Military: 10, Health: 8, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.D, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'D', Number: 4, Name: 'Dravos', Council: 'Ratification',
+    Letter: 'D', 'Number ': 4, Island: 'Dravos', Council: 'Council of Ratification',
     'Federal Reserve': 28, Military: 8, Health: 8, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.E, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'E', Number: 5, Name: 'Eryndor', Council: 'Finance',
+    Letter: 'E', 'Number ': 5, Island: 'Eryndor', Council: 'Council of Finance',
     'Federal Reserve': 30, Military: 8, Health: 8, Education: 8, 'Standard of Living': 3,
   }},
   { id: CID.F, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'F', Number: 6, Name: 'Frosveld', Council: 'Justice',
+    Letter: 'F', 'Number ': 6, Island: 'Frosveld', Council: 'Council of Justice',
     'Federal Reserve': 30, Military: 8, Health: 8, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.G, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'G', Number: 7, Name: 'Golmaria', Council: 'Defense',
+    Letter: 'G', 'Number ': 7, Island: 'Golmaria', Council: 'Council of Defense',
     'Federal Reserve': 28, Military: 8, Health: 8, Education: 8, 'Standard of Living': 8,
   }},
   { id: CID.H, createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Letter: 'H', Number: 8, Name: 'Heyvon', Council: 'Ratification',
+    Letter: 'H', 'Number ': 8, Island: 'Heyvon', Council: 'Council of Ratification',
     'Federal Reserve': 26, Military: 8, Health: 8, Education: 8, 'Standard of Living': 8,
   }},
 ]
@@ -135,9 +135,9 @@ export const mockTransactions: TransactionRecord[] = [
     'Money Change': 6, Voided: false,
   }},
 
-  // Round 1 — C buys 2 military tokens (Act/Negotiate)
+  // Round 1 — C buys 2 military tokens (Negotiate)
   { id: 'recTxn017', createdTime: '2026-11-24T09:12:00.000Z', fields: {
-    Country: [CID.C], Round: 1, Stage: 'Act/Negotiate', Type: 'Purchase',
+    Country: [CID.C], Round: 1, Stage: 'Negotiate', Type: 'Purchase',
     'Money Change': -6, 'Military Change': 2, Note: 'Bought 2 military', Voided: false,
   }},
 
@@ -163,39 +163,39 @@ export const mockTransactions: TransactionRecord[] = [
 
 export const mockStageLog: StageLogRecord[] = [
   { id: 'recStage01', createdTime: '2026-11-23T09:00:00.000Z', fields: {
-    Round: 0, Stage: 'Session 0', 'Started At': '2026-11-23T09:00:00.000Z',
+    Round: 0, Stage: 'Session 0', 'Started at': '2026-11-23T09:00:00.000Z',
     Undone: false,
   }},
   { id: 'recStage02', createdTime: '2026-11-24T09:00:00.000Z', fields: {
-    Round: 1, Stage: 'Stage Setting', 'Started At': '2026-11-24T09:00:00.000Z',
+    Round: 1, Stage: 'Stage Setting', 'Started at': '2026-11-24T09:00:00.000Z',
     Undone: false,
   }},
   { id: 'recStage03', createdTime: '2026-11-24T09:05:00.000Z', fields: {
-    Round: 1, Stage: 'Plan', 'Started At': '2026-11-24T09:05:00.000Z',
+    Round: 1, Stage: 'Plan', 'Started at': '2026-11-24T09:05:00.000Z',
     Undone: false,
   }},
   { id: 'recStage04', createdTime: '2026-11-24T09:10:00.000Z', fields: {
-    Round: 1, Stage: 'Act/Negotiate', 'Started At': '2026-11-24T09:10:00.000Z',
+    Round: 1, Stage: 'Negotiate', 'Started at': '2026-11-24T09:10:00.000Z',
     Undone: false,
   }},
   { id: 'recStage05', createdTime: '2026-11-24T09:20:00.000Z', fields: {
-    Round: 1, Stage: 'Report', 'Started At': '2026-11-24T09:20:00.000Z',
+    Round: 1, Stage: 'Report', 'Started at': '2026-11-24T09:20:00.000Z',
     Undone: false,
   }},
   { id: 'recStage06', createdTime: '2026-11-24T09:30:00.000Z', fields: {
-    Round: 1, Stage: 'Reaction', 'Started At': '2026-11-24T09:30:00.000Z',
+    Round: 1, Stage: 'Reaction', 'Started at': '2026-11-24T09:30:00.000Z',
     Undone: false,
   }},
   { id: 'recStage07', createdTime: '2026-11-24T09:35:00.000Z', fields: {
-    Round: 1, Stage: 'Consequences', 'Started At': '2026-11-24T09:35:00.000Z',
+    Round: 1, Stage: 'Consequences', 'Started at': '2026-11-24T09:35:00.000Z',
     Undone: false,
   }},
   { id: 'recStage08', createdTime: '2026-11-25T09:00:00.000Z', fields: {
-    Round: 2, Stage: 'Stage Setting', 'Started At': '2026-11-25T09:00:00.000Z',
+    Round: 2, Stage: 'Stage Setting', 'Started at': '2026-11-25T09:00:00.000Z',
     Undone: false,
   }},
   { id: 'recStage09', createdTime: '2026-11-25T09:05:00.000Z', fields: {
-    Round: 2, Stage: 'Plan', 'Started At': '2026-11-25T09:05:00.000Z',
+    Round: 2, Stage: 'Plan', 'Started at': '2026-11-25T09:05:00.000Z',
     Undone: false,
   }},
 ]
