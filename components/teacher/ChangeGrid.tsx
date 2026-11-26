@@ -20,12 +20,14 @@ interface Draft {
   note: string
 }
 
-const COLUMNS: { key: ChangeKey; label: string; icon: string; cls: string }[] = [
-  { key: 'federalReserve',   label: 'Money ($B)',         icon: '💰', cls: 'border-yellow-500 text-yellow-200' },
-  { key: 'military',         label: 'Military',           icon: '⚔️', cls: 'border-red-500 text-red-200' },
-  { key: 'health',           label: 'Health',             icon: '❤️', cls: 'border-white text-white' },
-  { key: 'education',        label: 'Education',          icon: '📘', cls: 'border-blue-500 text-blue-200' },
-  { key: 'standardOfLiving', label: 'Standard of Living', icon: '🏠', cls: 'border-green-500 text-green-200' },
+// Token columns use the same colors as the display: a swatch plus the label,
+// so color is never the only signal.
+const COLUMNS: { key: ChangeKey; label: string; sw: string | null; cls: string }[] = [
+  { key: 'federalReserve',   label: 'Money ($B)',         sw: null,        cls: 'border-ww-soft text-ww-text' },
+  { key: 'military',         label: 'Military',           sw: 'bg-ww-mil', cls: 'border-ww-mil text-ww-mil-lt' },
+  { key: 'health',           label: 'Health',             sw: 'bg-ww-hea ring-[1.5px] ring-ww-hea-outline', cls: 'border-ww-hea text-ww-hea-lt' },
+  { key: 'education',        label: 'Education',          sw: 'bg-ww-edu', cls: 'border-ww-edu text-ww-edu-lt' },
+  { key: 'standardOfLiving', label: 'Standard of Living', sw: 'bg-ww-sol', cls: 'border-ww-sol text-ww-sol-lt' },
 ]
 
 function emptyDraft(): Draft {
@@ -171,12 +173,12 @@ export function ChangeGrid({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-end gap-3 text-xl">
-        <label htmlFor="set-all-type" className="text-gray-300">Set every row&apos;s type to</label>
+        <label htmlFor="set-all-type" className="text-ww-soft">Set every row&apos;s type to</label>
         <select
           id="set-all-type"
           value=""
           onChange={e => e.target.value && setAllTypes(e.target.value as ConsoleType)}
-          className="h-14 rounded-lg border-2 border-gray-600 bg-gray-900 px-3 text-xl"
+          className="h-14 border border-ww-line bg-ww-cell px-3 text-xl"
         >
           <option value="">Choose…</option>
           {CONSOLE_TX_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -186,18 +188,18 @@ export function ChangeGrid({
       <div className="overflow-x-auto">
         <table className="w-full min-w-[1400px] border-separate border-spacing-x-2 border-spacing-y-3">
           <thead>
-            <tr className="text-left text-xl">
-              <th className="w-56 px-2 font-semibold text-gray-300">Country</th>
+            <tr className="text-left text-lg">
+              <th className="w-56 px-2 font-semibold uppercase tracking-wider text-ww-soft">Country</th>
               {COLUMNS.map(col => (
                 <th key={col.key} className="px-1">
-                  <span className={`inline-flex items-center gap-2 border-b-4 pb-1 font-semibold ${col.cls}`}>
-                    <span aria-hidden>{col.icon}</span>
+                  <span className={`inline-flex items-center gap-2 border-b-[3px] pb-1 font-semibold ${col.cls}`}>
+                    {col.sw && <span aria-hidden className={`h-3 w-3 shrink-0 ${col.sw}`} />}
                     {col.label}
                   </span>
                 </th>
               ))}
-              <th className="w-48 px-1 font-semibold text-gray-300">Type</th>
-              <th className="px-1 font-semibold text-gray-300">Note</th>
+              <th className="w-48 px-1 font-semibold uppercase tracking-wider text-ww-soft">Type</th>
+              <th className="px-1 font-semibold uppercase tracking-wider text-ww-soft">Note</th>
             </tr>
           </thead>
           <tbody>
@@ -206,13 +208,14 @@ export function ChangeGrid({
               return (
                 <tr key={c.id} className="align-top">
                   <th scope="row" className="px-2 pt-2 text-left">
-                    <div className="text-3xl font-black">
-                      {c.letter}/{c.number}
+                    <div className="flex items-baseline gap-3">
+                      <span className="font-mono text-3xl font-semibold text-ww-amber">{c.letter}</span>
+                      <span className="text-xl font-semibold">{c.name}</span>
                     </div>
-                    <div className="text-lg font-normal text-gray-400">{c.name}</div>
+                    <div className="font-mono text-base font-normal text-ww-soft">{fmt(c.federalReserve, true)}</div>
                     {problem && (
-                      <div role="alert" className="mt-1 text-base font-semibold text-red-300">
-                        ⚠ {problem}
+                      <div role="alert" className="mt-1 text-base font-semibold text-ww-alert">
+                        {problem}
                       </div>
                     )}
                   </th>
@@ -229,7 +232,7 @@ export function ChangeGrid({
                         <input
                           type="text"
                           autoComplete="off"
-                          aria-label={`${col.label} change for ${c.letter}/${c.number} ${c.name}`}
+                          aria-label={`${col.label} change for ${c.letter} ${c.name}`}
                           aria-invalid={bad}
                           value={draft.values[col.key]}
                           onChange={e => {
@@ -238,22 +241,21 @@ export function ChangeGrid({
                           }}
                           placeholder="0"
                           className={[
-                            'h-16 w-full rounded-lg border-2 bg-gray-900 px-3 text-center text-3xl tabular-nums',
-                            'placeholder:text-gray-700 focus:outline-none focus:ring-4 focus:ring-sky-500',
-                            bad ? 'border-red-500' : 'border-gray-600',
+                            'h-16 w-full border bg-ww-cell px-3 text-center font-mono text-[28px] tabular-nums',
+                            'placeholder:text-ww-line',
+                            bad ? 'border-2 border-ww-alert' : 'border-ww-line',
                           ].join(' ')}
                         />
-                        <div className="mt-1 text-center text-lg tabular-nums" aria-live="polite">
+                        <div className="mt-1 text-center font-mono text-[17px] tabular-nums" aria-live="polite">
                           {!p.ok ? (
-                            <span className="font-semibold text-red-300">{p.reason}</span>
+                            <span className="font-semibold text-ww-alert">{p.reason}</span>
                           ) : changed ? (
-                            <span className={bad ? 'font-semibold text-red-300' : isMoney && next < 0 ? 'font-semibold text-amber-300' : 'text-gray-200'}>
+                            <span className={bad ? 'font-semibold text-ww-alert' : isMoney && next < 0 ? 'font-semibold text-ww-amber' : 'text-ww-text'}>
                               {fmt(now, isMoney)} → <b>{fmt(next, isMoney)}</b>
-                              {bad && ' ✕'}
                               {isMoney && next < 0 && ' (loan)'}
                             </span>
                           ) : (
-                            <span className="text-gray-500">now {fmt(now, isMoney)}</span>
+                            <span className="text-ww-soft">now {fmt(now, isMoney)}</span>
                           )}
                         </div>
                       </td>
@@ -262,17 +264,17 @@ export function ChangeGrid({
 
                   <td className="px-1">
                     <select
-                      aria-label={`Type for ${c.letter}/${c.number} ${c.name}`}
+                      aria-label={`Type for ${c.letter} ${c.name}`}
                       value={draft.type}
                       onChange={e => {
                         const v = e.target.value as ConsoleType | ''
                         update(c.id, d => ({ ...d, type: v }))
                       }}
                       className={[
-                        'h-16 w-full rounded-lg border-2 bg-gray-900 px-2 text-xl',
+                        'h-16 w-full border bg-ww-cell px-2 text-xl',
                         a.problems.includes('Pick a type.')
-                          ? 'border-red-500'
-                          : 'border-gray-600',
+                          ? 'border-2 border-ww-alert'
+                          : 'border-ww-line',
                       ].join(' ')}
                     >
                       <option value="">Type…</option>
@@ -283,7 +285,7 @@ export function ChangeGrid({
                   <td className="px-1">
                     <input
                       type="text"
-                      aria-label={`Note for ${c.letter}/${c.number} ${c.name}`}
+                      aria-label={`Note for ${c.letter} ${c.name}`}
                       value={draft.note}
                       maxLength={2000}
                       onChange={e => {
@@ -291,7 +293,7 @@ export function ChangeGrid({
                         update(c.id, d => ({ ...d, note: v }))
                       }}
                       placeholder="Optional"
-                      className="h-16 w-full rounded-lg border-2 border-gray-600 bg-gray-900 px-3 text-xl placeholder:text-gray-700 focus:outline-none focus:ring-4 focus:ring-sky-500"
+                      className="h-16 w-full border border-ww-line bg-ww-cell px-3 text-xl placeholder:text-ww-soft"
                     />
                   </td>
                 </tr>
@@ -301,22 +303,22 @@ export function ChangeGrid({
         </table>
       </div>
 
-      <div className="sticky bottom-0 flex items-center justify-between gap-6 border-t border-gray-700 bg-gray-950 py-4">
+      <div className="sticky bottom-0 flex items-center justify-between gap-6 border-t border-ww-line bg-ww-bg py-4">
         <div
           role="status"
-          className={`text-2xl ${message?.tone === 'error' ? 'font-semibold text-red-300' : 'text-emerald-300'}`}
+          className={`text-2xl ${message?.tone === 'error' ? 'font-semibold text-ww-alert' : 'text-ww-ok'}`}
         >
           {message?.text ??
             (touchedRows.length === 0
-              ? <span className="text-gray-500">Type a change in any row.</span>
-              : <span className="text-gray-300">{touchedRows.length} {touchedRows.length === 1 ? 'country' : 'countries'} to save</span>)}
+              ? <span className="text-ww-soft">Type a change in any row.</span>
+              : <span className="text-ww-text">{touchedRows.length} {touchedRows.length === 1 ? 'country' : 'countries'} to save</span>)}
         </div>
         <div className="flex gap-4">
           <button
             type="button"
             onClick={clearAll}
             disabled={busy || touchedRows.length === 0}
-            className="h-20 rounded-2xl border-2 border-gray-500 px-8 text-2xl font-semibold hover:bg-gray-800 disabled:opacity-40"
+            className="h-20 border border-ww-line px-8 text-2xl font-semibold hover:bg-ww-cell disabled:opacity-40"
           >
             Clear all
           </button>
@@ -324,9 +326,9 @@ export function ChangeGrid({
             type="button"
             onClick={() => void save()}
             disabled={!canSave}
-            className="h-20 w-64 rounded-2xl bg-emerald-600 text-3xl font-bold text-white hover:bg-emerald-500 disabled:opacity-40"
+            className="h-20 w-64 bg-ww-amber text-3xl font-semibold text-ww-bg hover:bg-ww-amber-hover disabled:opacity-40"
           >
-            {busy ? 'Saving…' : '✓ Save'}
+            {busy ? 'Saving…' : 'Save'}
           </button>
         </div>
       </div>

@@ -86,9 +86,9 @@ export function ActivityFeed({
 
   return (
     <section aria-labelledby="activity-heading" className="mt-10 pb-12">
-      <h2 id="activity-heading" className="mb-4 text-3xl font-black">Recent changes</h2>
+      <h2 id="activity-heading" className="mb-4 text-2xl font-semibold uppercase tracking-[0.12em] text-ww-soft">Recent changes</h2>
       {transactions.length === 0 ? (
-        <p className="text-xl text-gray-400">Nothing saved yet.</p>
+        <p className="text-xl text-ww-soft">Nothing saved yet.</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {transactions.map(t => {
@@ -99,33 +99,33 @@ export function ActivityFeed({
               <li
                 key={t.id}
                 className={[
-                  'flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border-2 px-5 py-4',
-                  t.voided ? 'border-gray-800 bg-gray-950 text-gray-500' : 'border-gray-700 bg-gray-900',
+                  'flex flex-wrap items-center gap-x-6 gap-y-2 border px-5 py-4',
+                  t.voided ? 'border-ww-line-soft bg-ww-bg text-ww-soft' : 'border-ww-line bg-ww-panel',
                 ].join(' ')}
               >
                 <div className="w-48 shrink-0">
-                  <div className="text-2xl font-black">{c ? `${c.letter}/${c.number}` : '?'}</div>
-                  <div className="text-base text-gray-400">{c?.name ?? 'Unknown country'}</div>
+                  <div className="font-mono text-2xl font-semibold text-ww-amber">{c?.letter ?? '?'}</div>
+                  <div className="text-base text-ww-soft">{c?.name ?? 'Unknown country'}</div>
                 </div>
 
                 <div className={`min-w-0 flex-1 ${t.voided ? 'line-through' : ''}`}>
                   <div className="text-xl">
                     <span className="font-semibold">{t.type}</span>
-                    <span className="mx-2 text-gray-600">·</span>
-                    <span className="tabular-nums">{changeSummary(t)}</span>
+                    <span className="mx-2 text-ww-soft">·</span>
+                    <span className="font-mono tabular-nums">{changeSummary(t)}</span>
                   </div>
-                  {t.note && <div className="text-lg text-gray-400">“{t.note}”</div>}
+                  {t.note && <div className="text-lg text-ww-soft">“{t.note}”</div>}
                 </div>
 
-                <div className="text-right text-base text-gray-400">
+                <div className="text-right font-mono text-base text-ww-soft">
                   <div>{t.round > 0 ? `Round ${t.round} · ${t.stage}` : t.stage}</div>
                   <div>{timeOf(t.createdTime)}</div>
                 </div>
 
                 <div className="flex w-72 shrink-0 justify-end gap-3">
                   {t.voided ? (
-                    <span className="rounded-lg border-2 border-gray-700 px-4 py-2 text-xl font-semibold">
-                      ⊘ Voided
+                    <span className="border border-ww-line px-4 py-2 font-mono text-lg uppercase tracking-wider">
+                      Voided
                     </span>
                   ) : isConfirming ? (
                     <>
@@ -133,7 +133,7 @@ export function ActivityFeed({
                         type="button"
                         onClick={() => { setConfirming(null); setError(t.id, null) }}
                         disabled={busy}
-                        className="h-16 rounded-xl border-2 border-gray-500 px-5 text-xl font-semibold hover:bg-gray-800 disabled:opacity-40"
+                        className="h-16 border border-ww-line px-5 text-xl font-semibold hover:bg-ww-cell disabled:opacity-40"
                       >
                         Cancel
                       </button>
@@ -141,7 +141,7 @@ export function ActivityFeed({
                         type="button"
                         onClick={() => void voidRow(t.id)}
                         disabled={busy}
-                        className="h-16 rounded-xl bg-red-700 px-5 text-xl font-bold text-white hover:bg-red-600 disabled:opacity-40"
+                        className="h-16 bg-ww-alert px-5 text-xl font-semibold text-ww-bg hover:opacity-90 disabled:opacity-40"
                       >
                         {busy ? 'Voiding…' : 'Yes, void'}
                       </button>
@@ -150,8 +150,8 @@ export function ActivityFeed({
                     <button
                       type="button"
                       onClick={() => { setConfirming(t.id); setError(t.id, null) }}
-                      aria-label={`Void ${t.type} for ${c ? `${c.letter}/${c.number} ${c.name}` : 'unknown country'}`}
-                      className="h-16 w-32 rounded-xl border-2 border-red-500 text-xl font-semibold text-red-200 hover:bg-red-950"
+                      aria-label={`Void ${t.type} for ${c ? `${c.letter} ${c.name}` : 'unknown country'}`}
+                      className="h-16 w-32 border border-ww-alert text-xl font-semibold text-ww-alert hover:bg-ww-cell"
                     >
                       Void
                     </button>
@@ -159,8 +159,8 @@ export function ActivityFeed({
                 </div>
 
                 {errors[t.id] && (
-                  <div role="alert" className="basis-full text-lg font-semibold text-red-300">
-                    ⚠ {errors[t.id]}
+                  <div role="alert" className="basis-full text-lg font-semibold text-ww-alert">
+                    {errors[t.id]}
                   </div>
                 )}
               </li>

@@ -69,10 +69,10 @@ export default function TeacherPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 px-6 pt-6 text-white">
-      <header className="mb-4 flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="text-4xl font-black">Teacher Console</h1>
-        <div className="text-2xl text-gray-300">
+    <div className="min-h-screen bg-ww-bg px-6 pt-6 text-ww-text">
+      <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-ww-line pb-4">
+        <h1 className="text-2xl font-semibold uppercase tracking-[0.14em]">Wrinkled World <span className="text-ww-soft">· Teacher console</span></h1>
+        <div className="font-mono text-2xl">
           {stage ? (
             <>
               {stage.round > 0 && <span className="font-semibold">Round {stage.round} · </span>}
@@ -82,28 +82,28 @@ export default function TeacherPage() {
             'Game not started'
           ) : null}
         </div>
-        <div className="text-lg text-gray-500">
+        <div className="font-mono text-lg text-ww-soft">
           {secondsAgo === null
             ? error ? '' : 'Loading…'
             : secondsAgo === 0 ? 'Updated just now' : `Updated ${secondsAgo}s ago`}
-          {error && <span className="ml-4 text-red-400">⚠ Connection problem. Showing last data.</span>}
+          {error && <span className="ml-4 text-ww-alert">Connection problem. Showing last data.</span>}
         </div>
         <div className="flex items-center gap-4">
           {refreshMsg && (
             <span
               role="status"
-              className={`text-xl ${refreshMsg.tone === 'error' ? 'font-semibold text-red-300' : 'text-emerald-300'}`}
+              className={`text-xl ${refreshMsg.tone === 'error' ? 'font-semibold text-ww-alert' : 'text-ww-ok'}`}
             >
-              {refreshMsg.tone === 'ok' ? '✓ ' : '⚠ '}{refreshMsg.text}
+              {refreshMsg.text}
             </span>
           )}
           <button
             type="button"
             onClick={() => void refreshFromAirtable()}
             disabled={refreshing}
-            className="h-16 rounded-xl border-2 border-sky-500 px-6 text-xl font-semibold text-sky-200 hover:bg-sky-950 disabled:opacity-40"
+            className="h-16 border border-ww-line px-6 text-xl font-semibold hover:bg-ww-cell disabled:opacity-40"
           >
-            {refreshing ? 'Refreshing…' : '↻ Refresh from Airtable'}
+            {refreshing ? 'Refreshing…' : 'Refresh from Airtable'}
           </button>
         </div>
       </header>
@@ -129,7 +129,7 @@ export default function TeacherPage() {
           />
         </>
       ) : (
-        <div className="py-24 text-center text-3xl text-gray-400">
+        <div className="py-24 text-center text-3xl text-ww-soft">
           {error ? 'Could not connect. Retrying…' : 'Loading…'}
         </div>
       )}

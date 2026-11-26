@@ -49,21 +49,21 @@ export function PinPad({
   }, [submit, onCancel])
 
   const keyCls =
-    'h-20 w-24 rounded-xl bg-gray-800 text-4xl font-bold hover:bg-gray-700 active:bg-gray-600'
+    'h-20 w-24 border border-ww-line bg-ww-cell font-mono text-4xl font-semibold hover:bg-ww-line-soft active:bg-ww-line'
 
   return (
     <Overlay>
-      <div className="text-4xl font-bold">Teacher PIN</div>
+      <div className="text-[28px] font-semibold uppercase tracking-[0.14em]">Teacher PIN</div>
       <div className="mt-4 flex h-12 items-center gap-3" aria-label={`${pin.length} digits entered`}>
         {pin.length === 0 ? (
-          <span className="text-2xl text-gray-500">Enter PIN</span>
+          <span className="text-2xl text-ww-soft">Enter PIN</span>
         ) : (
           Array.from(pin).map((_, i) => (
-            <span key={i} className="h-5 w-5 rounded-full bg-white" />
+            <span key={i} className="h-4 w-4 bg-ww-amber" />
           ))
         )}
       </div>
-      <div className="h-8 text-2xl font-semibold text-red-400" role="alert">
+      <div className="h-8 text-2xl font-semibold text-ww-alert" role="alert">
         {error}
       </div>
       <div className="mt-2 grid grid-cols-3 gap-3">
@@ -74,7 +74,7 @@ export function PinPad({
         ))}
         <button
           type="button"
-          className={`${keyCls} text-2xl`}
+          className={`${keyCls} !font-sans !text-xl`}
           onClick={() => setPin('')}
         >
           Clear
@@ -96,7 +96,7 @@ export function PinPad({
           <button
             type="button"
             onClick={onCancel}
-            className="h-16 w-40 rounded-xl border-2 border-gray-500 text-2xl font-semibold hover:bg-gray-800"
+            className="h-16 w-40 border border-ww-line text-2xl font-semibold hover:bg-ww-cell"
           >
             Cancel
           </button>
@@ -105,7 +105,7 @@ export function PinPad({
           type="button"
           onClick={() => void submit()}
           disabled={!pin || checking}
-          className="h-16 w-40 rounded-xl bg-sky-600 text-2xl font-bold text-white hover:bg-sky-500 disabled:opacity-50"
+          className="h-16 w-40 bg-ww-amber text-2xl font-semibold text-ww-bg hover:bg-ww-amber-hover disabled:opacity-50"
         >
           Unlock
         </button>
@@ -121,7 +121,7 @@ export function Overlay({ children }: { children: React.ReactNode }) {
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80"
     >
-      <div className="flex flex-col items-center rounded-3xl border border-gray-600 bg-gray-900 px-16 py-12 text-white">
+      <div className="flex flex-col items-center border border-t-4 border-ww-line border-t-ww-amber bg-ww-panel px-16 py-12 text-ww-text">
         {children}
       </div>
     </div>

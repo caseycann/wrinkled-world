@@ -97,12 +97,12 @@ export function CrisisPanel({
 
   return (
     <section aria-labelledby="crises-heading" className="mt-10">
-      <h2 id="crises-heading" className="mb-4 text-3xl font-black">Crises</h2>
+      <h2 id="crises-heading" className="mb-4 text-2xl font-semibold uppercase tracking-[0.12em] text-ww-soft">Crises</h2>
 
       {/* ── On the board ───────────────────────────────────────────────── */}
-      <h3 className="mb-3 text-2xl font-semibold text-gray-300">On the board</h3>
+      <h3 className="mb-3 text-xl font-semibold">On the board</h3>
       {onBoard.length === 0 ? (
-        <p className="mb-8 text-xl text-gray-400">No crises on the board.</p>
+        <p className="mb-8 text-xl text-ww-soft">No crises on the board.</p>
       ) : (
         <ul className="mb-8 flex flex-col gap-3">
           {onBoard.map(c => {
@@ -115,19 +115,18 @@ export function CrisisPanel({
             return (
               <li
                 key={c.id}
-                className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border-2 border-red-800 bg-red-950/40 px-5 py-4"
+                className="flex flex-wrap items-center gap-x-6 gap-y-2 border border-l-4 border-ww-line border-l-ww-alert bg-ww-panel px-5 py-4"
               >
                 <div className="min-w-0 flex-1">
-                  <div className="text-2xl font-bold">
-                    <span className="mr-2 text-red-300">⚠</span>
-                    {c.cardNumber !== null && <span className="text-gray-400">#{c.cardNumber} </span>}
+                  <div className="text-2xl font-semibold">
+                    {c.cardNumber !== null && <span className="font-mono text-ww-soft">#{c.cardNumber} </span>}
                     {c.name}
                   </div>
-                  <div className="text-xl text-gray-300">
-                    {hit} <span className="mx-2 text-gray-600">·</span> {crisisDuration(c)}
-                    <span className="mx-2 text-gray-600">·</span> started Round {c.startedRound}
+                  <div className="text-xl text-ww-soft">
+                    {hit} <span className="mx-2">·</span> {crisisDuration(c)}
+                    <span className="mx-2">·</span> started Round {c.startedRound}
                   </div>
-                  {c.note && <div className="text-lg text-gray-400">“{c.note}”</div>}
+                  {c.note && <div className="text-lg text-ww-soft">“{c.note}”</div>}
                 </div>
 
                 <div className="flex shrink-0 justify-end gap-3">
@@ -137,7 +136,7 @@ export function CrisisPanel({
                         type="button"
                         onClick={() => setConfirming(null)}
                         disabled={busy}
-                        className="h-16 rounded-xl border-2 border-gray-500 px-5 text-xl font-semibold hover:bg-gray-800 disabled:opacity-40"
+                        className="h-16 border border-ww-line px-5 text-xl font-semibold hover:bg-ww-cell disabled:opacity-40"
                       >
                         Cancel
                       </button>
@@ -145,7 +144,7 @@ export function CrisisPanel({
                         type="button"
                         onClick={() => void solve(c)}
                         disabled={busy}
-                        className="h-16 rounded-xl bg-emerald-600 px-5 text-xl font-bold text-white hover:bg-emerald-500 disabled:opacity-40"
+                        className="h-16 bg-ww-amber px-5 text-xl font-semibold text-ww-bg hover:bg-ww-amber-hover disabled:opacity-40"
                       >
                         {busy ? 'Saving…' : 'Yes, solved'}
                       </button>
@@ -155,16 +154,16 @@ export function CrisisPanel({
                       type="button"
                       onClick={() => { setConfirming(c.id); setRowErrors(prev => ({ ...prev, [c.id]: '' })) }}
                       aria-label={`Mark ${c.name} solved`}
-                      className="h-16 rounded-xl border-2 border-emerald-500 px-6 text-xl font-semibold text-emerald-200 hover:bg-emerald-950"
+                      className="h-16 border border-ww-line px-6 text-xl font-semibold hover:bg-ww-cell"
                     >
-                      ✓ Mark solved
+                      Mark solved
                     </button>
                   )}
                 </div>
 
                 {rowErrors[c.id] && (
-                  <div role="alert" className="basis-full text-lg font-semibold text-red-300">
-                    ⚠ {rowErrors[c.id]}
+                  <div role="alert" className="basis-full text-lg font-semibold text-ww-alert">
+                    {rowErrors[c.id]}
                   </div>
                 )}
               </li>
@@ -174,15 +173,15 @@ export function CrisisPanel({
       )}
 
       {/* ── Add a crisis ───────────────────────────────────────────────── */}
-      <h3 className="mb-3 text-2xl font-semibold text-gray-300">Add a crisis</h3>
-      <div className="flex flex-col gap-4 rounded-xl border-2 border-gray-700 bg-gray-900 p-5">
+      <h3 className="mb-3 text-xl font-semibold">Add a crisis</h3>
+      <div className="flex flex-col gap-4 border border-ww-line bg-ww-panel p-5">
         <div className="flex flex-wrap items-center gap-4">
-          <label htmlFor="crisis-card" className="text-xl text-gray-300">Card</label>
+          <label htmlFor="crisis-card" className="text-xl text-ww-soft">Card</label>
           <select
             id="crisis-card"
             value={cardId}
             onChange={e => { setCardId(e.target.value); setAddMsg(null) }}
-            className="h-16 min-w-[32rem] rounded-lg border-2 border-gray-600 bg-gray-950 px-3 text-xl"
+            className="h-16 min-w-[32rem] border border-ww-line bg-ww-cell px-3 text-xl"
           >
             <option value="">Pick a card…</option>
             {crises.map(c => (
@@ -194,7 +193,7 @@ export function CrisisPanel({
         </div>
 
         <fieldset>
-          <legend className="mb-2 text-xl text-gray-300">Countries hit</legend>
+          <legend className="mb-2 text-xl text-ww-soft">Countries hit</legend>
           <div className="grid grid-cols-4 gap-3 xl:grid-cols-8">
             {countries.map(c => {
               const on = chosen.includes(c.id)
@@ -205,11 +204,11 @@ export function CrisisPanel({
                   aria-pressed={on}
                   onClick={() => toggle(c.id)}
                   className={[
-                    'h-20 rounded-xl border-2 px-2 text-left',
-                    on ? 'border-red-400 bg-red-900 text-white' : 'border-gray-600 bg-gray-950 text-gray-300 hover:bg-gray-800',
+                    'h-20 border px-3 text-left',
+                    on ? 'border-2 border-ww-amber bg-ww-cell text-ww-text' : 'border-ww-line bg-ww-bg text-ww-soft hover:bg-ww-cell',
                   ].join(' ')}
                 >
-                  <div className="text-2xl font-black">{on ? '✓ ' : ''}{c.letter}/{c.number}</div>
+                  <div className="font-mono text-2xl font-semibold"><span className={on ? 'text-ww-amber' : ''}>{c.letter}</span>{on ? ' ✓' : ''}</div>
                   <div className="truncate text-base">{c.name}</div>
                 </button>
               )
@@ -218,7 +217,7 @@ export function CrisisPanel({
         </fieldset>
 
         <div className="flex flex-wrap items-center gap-4">
-          <label htmlFor="crisis-note" className="text-xl text-gray-300">Note</label>
+          <label htmlFor="crisis-note" className="text-xl text-ww-soft">Note</label>
           <input
             id="crisis-note"
             type="text"
@@ -226,20 +225,20 @@ export function CrisisPanel({
             maxLength={2000}
             onChange={e => setNote(e.target.value)}
             placeholder="Optional"
-            className="h-16 min-w-0 flex-1 rounded-lg border-2 border-gray-600 bg-gray-950 px-3 text-xl placeholder:text-gray-700 focus:outline-none focus:ring-4 focus:ring-sky-500"
+            className="h-16 min-w-0 flex-1 border border-ww-line bg-ww-cell px-3 text-xl placeholder:text-ww-soft"
           />
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div
             role="status"
-            className={`text-2xl ${addMsg?.tone === 'error' ? 'font-semibold text-red-300' : 'text-emerald-300'}`}
+            className={`text-2xl ${addMsg?.tone === 'error' ? 'font-semibold text-ww-alert' : 'text-ww-ok'}`}
           >
             {addMsg
-              ? `${addMsg.tone === 'error' ? '⚠ ' : '✓ '}${addMsg.text}`
+              ? addMsg.text
               : card && !cardOk
-                ? <span className="text-amber-300">⚠ {card.name} is already on the board. Pick another card.</span>
-                : <span className="text-gray-500">
+                ? <span className="text-ww-amber">{card.name} is already on the board. Pick another card.</span>
+                : <span className="text-ww-soft">
                     {!card ? 'Pick a card.' : chosen.length === 0 ? 'Pick the countries it hits.' : `${card.name} for ${chosenLetters}`}
                   </span>}
           </div>
@@ -247,7 +246,7 @@ export function CrisisPanel({
             type="button"
             onClick={() => void addCrisis()}
             disabled={!cardOk || chosen.length === 0 || adding}
-            className="h-20 w-64 rounded-2xl bg-red-700 text-3xl font-bold text-white hover:bg-red-600 disabled:opacity-40"
+            className="h-20 w-64 bg-ww-amber text-3xl font-semibold text-ww-bg hover:bg-ww-amber-hover disabled:opacity-40"
           >
             {adding ? 'Adding…' : 'Add crisis'}
           </button>

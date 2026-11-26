@@ -233,7 +233,7 @@ export function DiceCam() {
         </button>
       )}
       {picking && !enlarged && (
-        <div className="absolute inset-x-2 bottom-2 border border-ww-line bg-ww-panel/95 p-2">
+        <div className="absolute inset-x-2 bottom-2 border border-ww-line bg-ww-panel p-2">
           <label htmlFor="dice-cam-picker" className="mb-1 block text-[18px] text-ww-soft">Camera</label>
           <select
             id="dice-cam-picker"
