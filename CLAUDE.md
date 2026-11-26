@@ -231,6 +231,10 @@ Because this is computed, Undo needs no crisis changes. "Until solved" crises sh
   token count below 0. Save writes one Transactions row per changed country, in batches of up to 10.
   Add an activity feed of the last 20 rows with a Void button on each, a "Refresh from Airtable" button,
   and a crisis panel (add a card for chosen countries; mark solved). Use large touch targets.
+- **Stage controls in the console:** a panel at the top of the teacher console shows the current stage and
+  timer, with Start game (empty Stage Log), Next stage and Undo, so a teacher never has to go to the display
+  computer. It uses the same `POST /api/stage` with `expect` as the display's button and asks "Start Round N?"
+  before any new round.
 - Student-facing words are plain and short. No developer jargon on the display.
 
 ## How to work in this repo

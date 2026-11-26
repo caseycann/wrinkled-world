@@ -6,12 +6,19 @@ import type { GameState } from '@/lib/state'
 import { ChangeGrid } from '@/components/teacher/ChangeGrid'
 import { ActivityFeed } from '@/components/teacher/ActivityFeed'
 import { CrisisPanel } from '@/components/teacher/CrisisPanel'
+import { StageControls } from '@/components/teacher/StageControls'
 import { PinPad } from '@/components/shared/PinPad'
 
-const stateFetcher = async (url: string): Promise<GameState> => {
+type ConsoleState = GameState & { clockOffsetMs: number }
+
+// Measures how far this computer's clock is from the server's, so the stage
+// countdown matches the display.
+const stateFetcher = async (url: string): Promise<ConsoleState> => {
   const r = await fetch(url)
   if (!r.ok) throw new Error(`HTTP ${r.status}`)
-  return (await r.json()) as GameState
+  const json = (await r.json()) as GameState & { serverNow?: string }
+  const serverMs = json.serverNow ? Date.parse(json.serverNow) : NaN
+  return { ...json, clockOffsetMs: Number.isNaN(serverMs) ? 0 : serverMs - Date.now() }
 }
 
 const authFetcher = (url: string) =>
@@ -23,7 +30,7 @@ export default function TeacherPage() {
   })
   // Same 3 s poll as the display. /api/state serves a 2 s cache, so this adds
   // at most one Airtable read per cache window, shared with every screen.
-  const { data, error, mutate } = useSWR<GameState>('/api/state', stateFetcher, {
+  const { data, error, mutate } = useSWR<ConsoleState>('/api/state', stateFetcher, {
     refreshInterval: 3000,
     revalidateOnFocus: false,
     isPaused: () => typeof document !== 'undefined' && document.hidden,
@@ -39,7 +46,6 @@ export default function TeacherPage() {
     ? Math.max(0, Math.floor((now - Date.parse(data.fetchedAt)) / 1000))
     : null
 
-  const stage = data?.currentStage
   const lockConsole = () => void mutateAuth({ unlocked: false }, { revalidate: false })
 
   // Re-reads Airtable into the server cache, then reloads this page's data.
@@ -72,16 +78,6 @@ export default function TeacherPage() {
     <div className="min-h-screen bg-ww-bg px-6 pt-6 text-ww-text">
       <header className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-ww-line pb-4">
         <h1 className="text-2xl font-semibold uppercase tracking-[0.14em]">Wrinkled World <span className="text-ww-soft">· Teacher console</span></h1>
-        <div className="font-mono text-2xl">
-          {stage ? (
-            <>
-              {stage.round > 0 && <span className="font-semibold">Round {stage.round} · </span>}
-              {stage.stage}
-            </>
-          ) : data ? (
-            'Game not started'
-          ) : null}
-        </div>
         <div className="font-mono text-lg text-ww-soft">
           {secondsAgo === null
             ? error ? '' : 'Loading…'
@@ -110,6 +106,12 @@ export default function TeacherPage() {
 
       {data ? (
         <>
+          <StageControls
+            stage={data.currentStage}
+            clockOffsetMs={data.clockOffsetMs}
+            onChanged={() => void mutate()}
+            onUnauthorized={lockConsole}
+          />
           <ChangeGrid
             countries={data.countries}
             onSaved={() => void mutate()}
