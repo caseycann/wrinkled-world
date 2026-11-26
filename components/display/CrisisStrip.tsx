@@ -42,30 +42,31 @@ export function CrisisStrip({
   const hidden = onBoard.length - fitCount
 
   return (
-    <div className="flex h-20 shrink-0 items-center gap-4 overflow-hidden border-t border-gray-700 bg-gray-900 px-6">
+    <div className="flex h-[76px] shrink-0 items-center gap-4 overflow-hidden border-t border-ww-line bg-ww-panel px-6">
       {onBoard.length === 0 ? (
-        <span className="text-2xl text-gray-400">No crises right now</span>
+        <span className="font-mono text-[22px] uppercase tracking-[0.12em] text-ww-soft">No active crises</span>
       ) : (
         <>
-          <span className="shrink-0 text-2xl font-bold text-red-300">⚠ Crises:</span>
+          <span className="shrink-0 font-mono text-[22px] uppercase tracking-[0.12em] text-ww-alert">Active crises</span>
           <div ref={rowRef} className="relative flex min-w-0 flex-1 gap-3 overflow-hidden">
             {onBoard.map((c, i) => (
               <div
                 key={c.id}
                 aria-hidden={i >= fitCount}
                 className={[
-                  'shrink-0 whitespace-nowrap rounded-lg border-2 border-red-500 bg-red-950 px-4 py-1 text-2xl',
+                  'flex shrink-0 items-baseline gap-3.5 whitespace-nowrap border border-l-4 border-ww-line border-l-ww-alert bg-ww-bg px-4 py-1.5 text-[26px]',
                   i >= fitCount ? 'invisible' : '',
                 ].join(' ')}
               >
-                <span className="font-bold text-white">{c.name}</span>
-                <span className="ml-3 font-semibold text-red-200">{hitLetters(c, countries)}</span>
-                <span className="ml-3 text-red-200">· {crisisDuration(c)}</span>
+                <span className="font-semibold">{c.name}</span>
+                <span className="font-mono text-ww-soft">
+                  {hitLetters(c, countries)} · {crisisDuration(c)}
+                </span>
               </div>
             ))}
           </div>
           {hidden > 0 && (
-            <span className="shrink-0 whitespace-nowrap rounded-lg border-2 border-gray-500 px-4 py-1 text-2xl font-semibold text-gray-200">
+            <span className="shrink-0 whitespace-nowrap border border-ww-line px-4 py-1.5 font-mono text-[24px] text-ww-soft">
               +{hidden} more
             </span>
           )}

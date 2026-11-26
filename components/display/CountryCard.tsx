@@ -1,164 +1,105 @@
-import { tierFromTokens, TIER_DICE, type Tier, type Die } from '@/lib/rules'
+import { tierFromTokens, TIER_DICE, type Die, type Tier } from '@/lib/rules'
 import type { CountryState } from '@/lib/state'
 
-// Tier badge text color: quality scale from gray (0) to emerald (4)
-const TIER_TEXT: Record<Tier, string> = {
-  0: 'text-gray-600',
-  1: 'text-gray-400',
-  2: 'text-yellow-400',
-  3: 'text-lime-300',
-  4: 'text-emerald-300',
+// One country on the projector. Primary information (letter, name, money,
+// token counts) is sized for the back of the room. Secondary information
+// (category labels, dice, tiers) is smaller: students also have it on their
+// handout sheets.
+
+type TokenKey = 'military' | 'health' | 'education' | 'standardOfLiving'
+
+// Color is never the only signal: every square also has its label and a swatch.
+const TOKENS: { key: TokenKey; label: string; num: string; lbl: string; sw: string }[] = [
+  { key: 'military',         label: 'Military',      num: 'text-ww-mil', lbl: 'text-ww-mil-lt', sw: 'bg-ww-mil' },
+  { key: 'health',           label: 'Health',        num: 'text-ww-hea', lbl: 'text-ww-hea-lt', sw: 'bg-ww-hea ring-[1.5px] ring-ww-hea-outline' },
+  { key: 'education',        label: 'Education',     num: 'text-ww-edu', lbl: 'text-ww-edu-lt', sw: 'bg-ww-edu' },
+  { key: 'standardOfLiving', label: 'Std of Living', num: 'text-ww-sol', lbl: 'text-ww-sol-lt', sw: 'bg-ww-sol' },
+]
+
+function dieFor(key: TokenKey, tier: Tier): string | null {
+  if (key === 'standardOfLiving') return null
+  const die: Die = TIER_DICE[tier][key]
+  if (die !== 'none') return die
+  return key === 'health' ? 'Exiled' : null
 }
 
 export function CountryCard({ country }: { country: CountryState }) {
-  const milTier  = tierFromTokens(country.military)
-  const hlthTier = tierFromTokens(country.health)
-  const eduTier  = tierFromTokens(country.education)
-  const solTier  = tierFromTokens(country.standardOfLiving)
+  const exiled = country.health === 0
+  const lowHealth = country.health <= 3        // includes Exiled
+  const loan = country.federalReserve < 0
+  // Card tag: short words only, so it fits beside the money. Low health is
+  // marked inside the Health square instead ("Health · Low", red outline).
+  const flag = exiled ? 'Exiled' : loan ? 'Loan' : null
+  const warn = exiled || loan || lowHealth
 
-  const milDie  = TIER_DICE[milTier].military
-  const hlthDie = TIER_DICE[hlthTier].health
-  const eduDie  = TIER_DICE[eduTier].education
-
-  const isExiled   = country.health === 0
-  const healthWarn = country.health > 0 && country.health <= 3
-  const moneyWarn  = country.federalReserve < 0
-
-  const snap = country.prevSnapshot
-
-  const border = isExiled
-    ? 'border-2 border-red-600'
-    : healthWarn
-    ? 'border-2 border-orange-500'
-    : 'border border-gray-700'
-
-  const moneyStr =
-    country.federalReserve < 0
-      ? `−$${Math.abs(country.federalReserve)}B`
-      : `$${country.federalReserve}B`
-
-  const moneyDelta = snap != null ? country.federalReserve - snap.federalReserve : undefined
+  const money = `${loan ? '−' : ''}$${Math.abs(country.federalReserve)}B`
+  // Long amounts step down so money and tag share one line (never below 48px).
+  const moneySize = money.length <= 4 ? 'text-[68px]' : money.length === 5 ? 'text-[60px]' : 'text-[52px]'
 
   return (
-    <div className={`h-full bg-gray-800 rounded-xl p-3 flex flex-col gap-2 overflow-hidden ${border}`}>
-
-      {/* Header: name + identifiers */}
-      <div className="flex items-start justify-between gap-2">
-        <div>
-          <div className="text-2xl font-bold leading-snug">{country.name}</div>
-          <div className="text-xl text-gray-400">{country.letter}{country.number}{country.council ? ` · ${country.council}` : ''}</div>
-        </div>
-        {isExiled && (
-          <span className="shrink-0 rounded-lg bg-red-600 px-3 py-1 text-xl font-black tracking-widest text-white">
-            EXILED
-          </span>
-        )}
-      </div>
-
-      {/* Federal Reserve */}
-      <div className="text-center">
-        <div className={`text-6xl font-black tabular-nums leading-none ${moneyWarn ? 'text-red-400' : 'text-yellow-300'}`}>
-          {moneyStr}
-        </div>
-        <div className="flex items-center justify-center gap-3 mt-1 h-7">
-          {moneyDelta != null && moneyDelta !== 0 && (
-            <span className={`text-xl font-semibold ${moneyDelta > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-              {moneyDelta > 0 ? '+' : ''}${Math.abs(moneyDelta)}B
-            </span>
-          )}
-          {moneyWarn && (
-            <span className="text-xl font-semibold text-red-400">⚠ In debt</span>
-          )}
-        </div>
-      </div>
-
-      {/* Token section: two flex rows so height distributes from the flex-1 parent */}
-      <div className="flex flex-col flex-1 min-h-0 gap-1">
-        <div className="flex flex-1 min-h-0 gap-1">
-          <TokenCell
-            label="Military" value={country.military} tier={milTier} die={milDie}
-            numCls="text-red-400" lblCls="text-red-300"
-            delta={snap != null ? country.military - snap.military : undefined}
-          />
-          <TokenCell
-            label="Health" value={country.health} tier={hlthTier} die={hlthDie}
-            numCls={isExiled ? 'text-red-500' : healthWarn ? 'text-orange-300' : 'text-white'}
-            lblCls={isExiled ? 'text-red-400' : healthWarn ? 'text-orange-300' : 'text-gray-200'}
-            warn={healthWarn}
-            delta={snap != null ? country.health - snap.health : undefined}
-          />
-        </div>
-        <div className="flex flex-1 min-h-0 gap-1">
-          <TokenCell
-            label="Education" value={country.education} tier={eduTier} die={eduDie}
-            numCls="text-blue-400" lblCls="text-blue-300"
-            delta={snap != null ? country.education - snap.education : undefined}
-          />
-          <TokenCell
-            label="Std of Living" value={country.standardOfLiving} tier={solTier} die={null}
-            numCls="text-green-400" lblCls="text-green-300"
-            delta={snap != null ? country.standardOfLiving - snap.standardOfLiving : undefined}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Token cell ──────────────────────────────────────────────────────────────
-
-function TokenCell({
-  label, value, tier, die, numCls, lblCls, warn, delta,
-}: {
-  label: string
-  value: number
-  tier: Tier
-  die: Die | null
-  numCls: string
-  lblCls: string
-  warn?: boolean
-  delta?: number
-}) {
-  const hasDelta = delta != null && delta !== 0
-
-  return (
-    <div className="flex flex-1 flex-col items-center overflow-hidden rounded-lg bg-gray-900/60 px-2 py-1 min-w-0">
-
-      {/* Token count */}
-      <span className={`text-5xl font-black tabular-nums leading-none ${numCls}`}>
-        {value}
-      </span>
-
-      {/* Change since last round — invisible placeholder keeps height stable */}
-      <span className={`text-lg font-bold leading-none ${
-        hasDelta
-          ? delta! > 0 ? 'text-emerald-400' : 'text-red-400'
-          : 'invisible'
-      }`}>
-        {hasDelta ? `${delta! > 0 ? '+' : ''}${delta}` : '+0'}
-      </span>
-
-      {/* Category label */}
-      <span className={`text-2xl font-semibold leading-tight text-center ${lblCls}`}>
-        {label}
-      </span>
-
-      {/* Tier badge + Die badge */}
-      <div className="flex items-center gap-1.5 mt-0.5">
-        <span className={`rounded px-2 py-0.5 text-sm font-bold bg-gray-800 ${TIER_TEXT[tier]}`}>
-          T{tier}
+    <div
+      className={[
+        'flex h-full min-h-0 flex-col overflow-hidden border bg-ww-panel',
+        warn ? 'border-ww-alert' : 'border-ww-line',
+      ].join(' ')}
+    >
+      {/* Letter and name */}
+      <div className="flex min-w-0 items-center gap-3.5 border-b border-ww-line px-4 py-3">
+        <span className="shrink-0 font-mono text-[30px] font-semibold leading-none text-ww-amber">
+          {country.letter}
         </span>
-        {die != null && die !== 'none' ? (
-          <span className={`rounded px-2 py-0.5 text-sm font-mono font-bold bg-gray-800 border border-current ${lblCls}`}>
-            {die}
+        <span className="min-w-0 flex-1 truncate text-[30px] font-semibold leading-tight">
+          {country.name}
+        </span>
+      </div>
+
+      {/* Money, plus the warning tag (on this line so it never squeezes the name) */}
+      <div className="flex h-[96px] shrink-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4">
+        <span
+          className={`font-mono ${moneySize} font-semibold leading-none tabular-nums ${loan ? 'text-ww-alert' : ''}`}
+          aria-label={`Money ${money}`}
+        >
+          {money}
+        </span>
+        {flag && (
+          <span className="shrink-0 whitespace-nowrap border-[1.5px] border-ww-alert px-2.5 py-0.5 text-[20px] font-semibold uppercase tracking-wider text-ww-alert">
+            {flag}
           </span>
-        ) : (
-          <span className="text-sm text-gray-700 px-2 py-0.5">—</span>
         )}
       </div>
 
-      {/* Health warning */}
-      {warn && <span className="text-xl font-bold text-orange-400 mt-0.5">⚠ Low</span>}
+      {/* Tokens, 2 × 2 */}
+      <div className="grid min-h-0 flex-1 grid-cols-2 grid-rows-2 gap-1.5 border-t border-ww-line p-1.5">
+        {TOKENS.map(t => {
+          const value = country[t.key]
+          const tier = tierFromTokens(value)
+          const die = dieFor(t.key, tier)
+          const low = t.key === 'health' && lowHealth
+          return (
+            <div
+              key={t.key}
+              className={[
+                'grid min-h-0 min-w-0 grid-cols-[1fr_auto] grid-rows-[auto_1fr] bg-ww-cell px-3 py-2.5',
+                low ? 'ring-[3px] ring-inset ring-ww-alert' : '',
+              ].join(' ')}
+            >
+              <span className={`col-span-2 flex items-center gap-2 overflow-hidden whitespace-nowrap text-[19px] font-semibold ${low ? 'text-ww-alert' : t.lbl}`}>
+                <span aria-hidden className={`h-3.5 w-3.5 shrink-0 ${t.sw}`} />
+                {t.label}{low && !exiled && ' · Low'}
+              </span>
+              <span
+                className={`self-end font-mono text-[56px] font-semibold leading-none tabular-nums ${low ? 'text-ww-alert' : t.num}`}
+              >
+                {value}
+              </span>
+              <span className={`self-end text-right font-mono leading-tight ${t.lbl}`}>
+                {die && <span className="block text-[20px] font-semibold">{die}</span>}
+                <span className="block text-[17px] opacity-75">T{tier}</span>
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

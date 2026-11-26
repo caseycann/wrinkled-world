@@ -196,7 +196,7 @@ export function DiceCam() {
       className={
         enlarged
           ? 'fixed inset-0 z-50 flex items-center justify-center bg-black'
-          : 'relative aspect-video w-[480px] overflow-hidden rounded-2xl border-4 border-gray-600 bg-black'
+          : 'relative aspect-video w-full overflow-hidden border border-ww-line bg-black'
       }
     >
       {/* The one video element. Moving between small and full screen keeps the same stream. */}
@@ -215,9 +215,9 @@ export function DiceCam() {
       />
 
       {/* Label */}
-      <div className="pointer-events-none absolute left-3 top-2 rounded-lg bg-black/70 px-3 py-1 text-2xl font-semibold text-white">
-        🎲 Dice cam
-        {enlarged && <span className="ml-3 text-xl font-normal text-gray-300">Click to close</span>}
+      <div className="pointer-events-none absolute left-3 top-2.5 bg-black/70 px-2.5 py-0.5 font-mono text-[20px] uppercase tracking-[0.1em] text-ww-amber">
+        Dice cam
+        {enlarged && <span className="ml-4 normal-case tracking-normal text-ww-soft">Click to close</span>}
       </div>
 
       {/* Camera picker (setup, per computer) */}
@@ -227,19 +227,19 @@ export function DiceCam() {
           onClick={() => setPicking(p => !p)}
           aria-label="Choose camera"
           aria-expanded={picking}
-          className="absolute right-2 top-2 h-11 w-11 rounded-lg bg-black/70 text-2xl text-white hover:bg-black"
+          className="absolute right-2 top-2 h-11 bg-black/70 px-3 font-mono text-[18px] uppercase tracking-wider text-ww-soft hover:bg-black hover:text-ww-text"
         >
-          ⚙
+          Camera
         </button>
       )}
       {picking && !enlarged && (
-        <div className="absolute inset-x-2 bottom-2 rounded-lg bg-black/85 p-2">
-          <label htmlFor="dice-cam-picker" className="mb-1 block text-xl text-gray-200">Camera</label>
+        <div className="absolute inset-x-2 bottom-2 border border-ww-line bg-ww-panel/95 p-2">
+          <label htmlFor="dice-cam-picker" className="mb-1 block text-[18px] text-ww-soft">Camera</label>
           <select
             id="dice-cam-picker"
             value={activeId}
             onChange={e => pick(e.target.value)}
-            className="h-12 w-full rounded-lg border-2 border-gray-500 bg-gray-900 px-2 text-xl text-white"
+            className="h-12 w-full border border-ww-line bg-ww-cell px-2 text-[20px] text-ww-text"
           >
             {cameras.length === 0 && <option value="">No cameras found</option>}
             {cameras.map((c, i) => (
@@ -253,19 +253,19 @@ export function DiceCam() {
 
       {/* Starting / problem messages */}
       {status.kind === 'starting' && (
-        <div className="absolute inset-0 flex items-center justify-center text-2xl text-gray-300">
+        <div className="absolute inset-0 flex items-center justify-center font-mono text-[22px] text-ww-soft">
           Starting camera…
         </div>
       )}
       {problem && (
         <div role="alert" className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-6 pt-10 text-center">
-          <div className="text-3xl font-bold text-amber-300">⚠ {problem.title}</div>
-          <div className="text-xl text-gray-200">{problem.help}</div>
+          <div className="text-[28px] font-semibold text-ww-amber">{problem.title}</div>
+          <div className="text-[20px] text-ww-soft">{problem.help}</div>
           {status.kind === 'problem' && status.problem !== 'unsupported' && (
             <button
               type="button"
               onClick={() => setAttempt(a => a + 1)}
-              className="mt-1 h-12 rounded-xl border-2 border-gray-400 px-6 text-xl font-semibold text-white hover:bg-gray-800"
+              className="mt-1 h-12 border border-ww-line px-6 text-[20px] font-semibold text-ww-text hover:bg-ww-cell"
             >
               Try again
             </button>

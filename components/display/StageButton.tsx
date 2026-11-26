@@ -134,27 +134,22 @@ export function StageButton({
     }
 
     return (
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex w-full flex-col gap-3">
         <button
           type="button"
           onClick={() => { enableChime(); void startGame() }}
           disabled={busy}
           aria-label={unlocked ? 'Start the game' : 'Start the game (locked, tap to enter PIN)'}
-          className={[
-            'relative flex h-[440px] w-[440px] flex-col items-center justify-center gap-4 rounded-[48px]',
-            'border-4 border-gray-600 bg-gray-800 text-center',
-            unlocked ? 'cursor-pointer hover:bg-gray-700 active:bg-gray-600' : 'cursor-default',
-            busy ? 'opacity-60' : '',
-          ].join(' ')}
+          className={[PANEL, unlocked ? PANEL_LIVE : 'cursor-default', busy ? 'opacity-60' : ''].join(' ')}
         >
-          {!unlocked && (
-            <span className="absolute right-5 top-4 text-2xl text-gray-500" aria-hidden>🔒</span>
-          )}
-          <div className="text-4xl text-gray-400">Waiting to start</div>
-          <div className="text-6xl font-black">▶ Start game</div>
-          <div className="text-2xl text-gray-400">{unlocked ? 'Tap for Session 0' : ''}</div>
+          <PanelTop label="Not started" locked={!unlocked} />
+          <div className="text-[56px] font-semibold leading-tight">Start game</div>
+          <div className="flex-1" />
+          <div className="text-[24px] text-ww-soft">
+            {unlocked ? 'Tap to begin Session 0' : 'Tap to enter the teacher PIN'}
+          </div>
         </button>
-        <div className="h-8 text-2xl text-orange-300" role="status">{message}</div>
+        <div className="h-14 text-[24px] text-ww-alert" role="status">{message}</div>
         {modal === 'pin' && (
           <PinPad
             onCancel={() => setModal('none')}
@@ -181,8 +176,10 @@ export function StageButton({
 
   const nextLabel = startsNewRound ? `Round ${next.round}` : next.stage
 
+  const fraction = hasTimer ? secondsLeft / (stage.minutes * 60) : 0
+
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex w-full flex-col gap-3">
       <button
         type="button"
         onClick={onMainTap}
@@ -190,60 +187,61 @@ export function StageButton({
         aria-label={
           unlocked ? `Next stage: ${nextLabel}` : 'Stage button (locked, tap to enter PIN)'
         }
-        className={[
-          'relative flex h-[440px] w-[440px] flex-col items-center justify-center gap-1 rounded-[48px]',
-          'border-4 bg-gray-800 text-center transition-colors',
-          unlocked ? 'cursor-pointer hover:bg-gray-700 active:bg-gray-600' : 'cursor-default',
-          timeUp ? 'animate-pulse border-amber-400 ring-8 ring-amber-400/60' : 'border-gray-600',
-          busy ? 'opacity-60' : '',
-        ].join(' ')}
+        className={[PANEL, unlocked ? PANEL_LIVE : 'cursor-default', busy ? 'opacity-60' : ''].join(' ')}
       >
-        {!unlocked && (
-          <span className="absolute right-5 top-4 text-2xl text-gray-500" aria-hidden>
-            🔒
+        {/* Time's up: a pulsing amber ring around the panel. Never auto-advances. */}
+        {timeUp && (
+          <span aria-hidden className="pointer-events-none absolute inset-0 animate-pulse ring-4 ring-inset ring-ww-amber" />
+        )}
+
+        <PanelTop label={stage.round > 0 ? `Round ${stage.round}` : 'Before Round 1'} locked={!unlocked} />
+        <div className="text-[56px] font-semibold leading-tight">{stage.stage}</div>
+
+        {hasTimer ? (
+          <>
+            <div className="mt-1.5 font-mono text-[132px] font-semibold leading-none tabular-nums text-ww-amber">
+              {formatCountdown(secondsLeft)}
+            </div>
+            <div className="relative mt-2 h-2.5 w-full bg-ww-line" aria-hidden>
+              <span
+                className="absolute inset-y-0 left-0 bg-ww-amber transition-[width] duration-300"
+                style={{ width: `${Math.max(0, Math.min(1, fraction)) * 100}%` }}
+              />
+            </div>
+          </>
+        ) : (
+          <div className="flex-1" />
+        )}
+
+        <div className="mt-auto flex items-baseline justify-between gap-4 pt-2">
+          <span className="text-[24px]">
+            <span className="text-ww-soft">Room </span>
+            <span className="font-semibold">{stage.room}</span>
           </span>
-        )}
-
-        {stage.round > 0 && (
-          <div className="text-3xl font-semibold text-gray-400">Round {stage.round}</div>
-        )}
-        <div className="text-5xl font-black leading-tight">{stage.stage}</div>
-
-        {hasTimer && (
-          <div
-            className={`text-9xl font-black tabular-nums leading-none ${
-              timeUp ? 'text-amber-300' : 'text-white'
-            }`}
-          >
-            {formatCountdown(secondsLeft)}
-          </div>
-        )}
-
-        <div className="text-3xl font-semibold text-sky-300">
-          <span aria-hidden>📍 </span>
-          {stage.room}
-        </div>
-
-        <div className={`h-8 text-2xl ${timeUp ? 'font-bold text-amber-300' : 'text-gray-400'}`}>
-          {timeUp ? '⏰ Time’s up' : unlocked ? `Tap for ${nextLabel}` : ''}
+          {timeUp ? (
+            <span className="text-[24px] font-semibold text-ww-amber">Time’s up</span>
+          ) : (
+            <span className="font-mono text-[22px] text-ww-soft">
+              {unlocked ? `Tap for ${nextLabel}` : `Next: ${nextLabel}`}
+            </span>
+          )}
         </div>
       </button>
 
-      <div className="flex h-16 items-center gap-4">
-        {unlocked && stage.stage !== 'Session 0' && (
+      <div className="flex h-14 items-center justify-between gap-4">
+        {unlocked && stage.stage !== 'Session 0' ? (
           <button
             type="button"
             onClick={() => void send('undo')}
             disabled={busy}
-            className="h-16 rounded-xl border-2 border-gray-500 bg-gray-900 px-8 text-2xl font-semibold text-gray-200 hover:bg-gray-800 disabled:opacity-50"
+            className="h-14 shrink-0 border border-ww-line bg-ww-panel px-7 text-[22px] font-semibold text-ww-text hover:bg-ww-cell disabled:opacity-50"
           >
-            ↶ Undo
+            Undo
           </button>
-        )}
-      </div>
-
-      <div className="h-8 text-2xl text-orange-300" role="status">
-        {message}
+        ) : <span />}
+        <div className="text-right text-[22px] text-ww-alert" role="status">
+          {message}
+        </div>
       </div>
 
       {modal === 'pin' && (
@@ -291,12 +289,12 @@ function ConfirmRound({
 
   return (
     <Overlay>
-      <div className="text-6xl font-black">Start Round {round}?</div>
-      <div className="mt-8 flex gap-6">
+      <div className="text-[56px] font-semibold">Start Round {round}?</div>
+      <div className="mt-8 flex gap-4">
         <button
           type="button"
           onClick={onCancel}
-          className="h-20 w-56 rounded-2xl border-2 border-gray-500 text-3xl font-semibold hover:bg-gray-800"
+          className="h-20 w-56 border border-ww-line text-[28px] font-semibold hover:bg-ww-cell"
         >
           Cancel
         </button>
@@ -304,11 +302,32 @@ function ConfirmRound({
           type="button"
           autoFocus
           onClick={onConfirm}
-          className="h-20 w-72 rounded-2xl bg-emerald-600 text-3xl font-bold text-white hover:bg-emerald-500"
+          className="h-20 w-80 bg-ww-amber text-[28px] font-semibold text-ww-bg hover:bg-ww-amber-hover"
         >
-          ✓ Start Round {round}
+          Start Round {round}
         </button>
       </div>
     </Overlay>
+  )
+}
+
+// ── Panel pieces ────────────────────────────────────────────────────────────
+
+const PANEL = [
+  'relative flex h-[440px] w-full flex-col px-[30px] pb-6 pt-[22px] text-left',
+  'border border-t-4 border-ww-line border-t-ww-amber bg-ww-panel transition-colors',
+].join(' ')
+const PANEL_LIVE = 'cursor-pointer hover:bg-ww-cell active:bg-ww-line-soft'
+
+function PanelTop({ label, locked }: { label: string; locked: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="font-mono text-[26px] uppercase tracking-[0.12em] text-ww-soft">{label}</span>
+      {locked && (
+        <span className="border border-ww-line px-2.5 py-0.5 font-mono text-[18px] uppercase tracking-widest text-ww-soft">
+          Locked
+        </span>
+      )}
+    </div>
   )
 }

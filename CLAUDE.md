@@ -206,12 +206,22 @@ Because this is computed, Undo needs no crisis changes. "Until solved" crises sh
 
 ## UI rules
 
-- **Display:** designed for 1920×1080 with no scrolling, readable from the back of a classroom.
-  Country money and token numbers at least 48px; labels at least 24px; the stage button at least 320px across.
-  Eight country cards around the central stage button; crises strip at the bottom; dice cam panel that
-  enlarges to full screen on click.
+- **Look ("Market Board"):** serious and professional, like a financial terminal. Never game-like or playful:
+  students treat it with more respect. Dark panels, IBM Plex Sans with IBM Plex Mono for figures, square
+  corners, thin lines, amber for accents (country letters, timer, main buttons), red only for warnings.
+  No emoji. Colors are the `ww-*` Tailwind colors defined in `app/globals.css`; use them, not raw colors.
+- **Display:** designed for 1920×1080 with no scrolling. Top bar, eight country cards around the central
+  stage panel and dice cam, crises strip at the bottom. The dice cam enlarges to full screen on click.
+  - **Primary information** is readable from the back of the classroom: money and token counts at least
+    48px; country letters and names, the stage name, the timer and crisis names at least 24px. The stage
+    panel is at least 320px across.
+  - **Secondary information** (token category labels, dice, tiers shown as T0–T4) may be smaller, about
+    17–20px. Students also have it on their handout sheets.
+  - Country cards show the letter only (not the number), the money with no label, and the four tokens in a
+    2×2 grid. All four squares share one background; each token's label, count and dice are in its color.
 - **Color is never the only signal.** Token colors (Military red, Education blue, Health white with an
-  outline, Standard of Living green) always come with a label or icon. Keep high contrast.
+  outline, Standard of Living green; matched in lightness) always come with a label and a swatch. Keep high
+  contrast.
 - Poll `/api/state` every 3 seconds with SWR and pause while the tab is hidden. Show "Updated N seconds ago".
   On an error, keep showing the last good data with a small warning.
 - **Teacher console (one teacher at a time):** a grid with one row per country and five whole-number

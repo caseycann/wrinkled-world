@@ -41,9 +41,9 @@ export default function DisplayPage() {
 
   if (!data) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-gray-950">
-        <span className="text-4xl text-white">
-          {error ? 'Could not connect — retrying…' : 'Loading…'}
+      <div className="flex h-screen w-screen items-center justify-center bg-ww-bg">
+        <span className="text-[36px] text-ww-soft">
+          {error ? 'Could not connect. Retrying…' : 'Loading…'}
         </span>
       </div>
     )
@@ -53,18 +53,31 @@ export default function DisplayPage() {
   const right = data.countries.filter(c => c.number >= 5)
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-gray-950 text-white">
+    <div className="flex h-screen w-screen flex-col overflow-hidden bg-ww-bg text-ww-text">
+
+      {/* ── Top bar ────────────────────────────────────────────────────── */}
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-ww-line px-6">
+        <span className="text-[24px] font-semibold uppercase tracking-[0.14em]">Wrinkled World</span>
+        <span className="font-mono text-[22px] text-ww-soft">
+          {error && <span className="mr-6 text-ww-alert">Connection problem. Showing last data.</span>}
+          {secondsAgo !== null
+            ? secondsAgo === 0
+              ? 'Updated just now'
+              : `Updated ${secondsAgo}s ago`
+            : 'Connecting…'}
+        </span>
+      </div>
 
       {/* ── Main area ──────────────────────────────────────────────────── */}
-      <div className="min-h-0 flex-1 grid grid-cols-[2fr_480px_2fr] gap-4 p-4">
+      <div className="grid min-h-0 flex-1 grid-cols-[1fr_500px_1fr] gap-4 p-4">
 
         {/* Left: countries 1–4 */}
-        <div className="grid grid-cols-2 grid-rows-2 gap-3">
+        <div className="grid min-h-0 grid-cols-2 grid-rows-2 gap-4">
           {left.map(c => <CountryCard key={c.id} country={c} />)}
         </div>
 
-        {/* Center: stage button (countdown, room, PIN-unlocked advance/undo) and dice cam */}
-        <div className="flex min-h-0 flex-col items-center justify-center gap-4 text-center">
+        {/* Center: stage panel (countdown, room, PIN-unlocked advance/undo) and dice cam */}
+        <div className="flex min-h-0 flex-col justify-center gap-4 px-2.5">
           <StageButton
             stage={data.currentStage}
             clockOffsetMs={data.clockOffsetMs}
@@ -74,7 +87,7 @@ export default function DisplayPage() {
         </div>
 
         {/* Right: countries 5–8 */}
-        <div className="grid grid-cols-2 grid-rows-2 gap-3">
+        <div className="grid min-h-0 grid-cols-2 grid-rows-2 gap-4">
           {right.map(c => <CountryCard key={c.id} country={c} />)}
         </div>
       </div>
@@ -82,18 +95,6 @@ export default function DisplayPage() {
       {/* ── Crises strip ───────────────────────────────────────────────── */}
       <CrisisStrip crises={data.crises} countries={data.countries} />
 
-      {/* ── Status bar ─────────────────────────────────────────────────── */}
-      <div className="flex h-10 shrink-0 items-center justify-between border-t border-gray-800 bg-gray-900 px-6 text-lg text-gray-500">
-        <span>World Builders</span>
-        <span>
-          {secondsAgo !== null
-            ? secondsAgo === 0
-              ? 'Updated just now'
-              : `Updated ${secondsAgo}s ago`
-            : 'Connecting…'}
-          {error && <span className="ml-4 text-red-400">⚠ Connection error</span>}
-        </span>
-      </div>
     </div>
   )
 }

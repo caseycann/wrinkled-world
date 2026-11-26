@@ -1,3 +1,40 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Market Board palette. Tailwind names these ww-* (see tailwind.config.ts). */
+:root {
+  --ww-bg: #0e1114;
+  --ww-panel: #161a1f;
+  --ww-cell: #1b2026;
+  --ww-line: #2b323a;
+  --ww-line-soft: #20262d;
+  --ww-text: #eef1f4;
+  --ww-soft: #8e99a4;
+  --ww-amber: #f2b23e;
+  --ww-amber-hover: #f6c463;
+  --ww-alert: #ff6159;
+  --ww-ok: #4cc38a;
+
+  --ww-mil: oklch(0.72 0.15 25);
+  --ww-mil-lt: oklch(0.84 0.08 25);
+  --ww-hea: oklch(0.97 0 0);
+  --ww-hea-lt: oklch(0.90 0.005 250);
+  --ww-hea-outline: oklch(0.62 0.005 250);
+  --ww-edu: oklch(0.72 0.15 255);
+  --ww-edu-lt: oklch(0.84 0.08 255);
+  --ww-sol: oklch(0.72 0.15 150);
+  --ww-sol-lt: oklch(0.84 0.08 150);
+
+  color-scheme: dark;
+}
+
+body {
+  background: var(--ww-bg);
+  color: var(--ww-text);
+}
+
+:focus-visible {
+  outline: 3px solid var(--ww-amber);
+  outline-offset: 2px;
+}

@@ -1,14 +1,27 @@
 import type { Metadata } from 'next'
+import { IBM_Plex_Mono, IBM_Plex_Sans } from 'next/font/google'
 import './globals.css'
 
+// Fonts are downloaded at build time and served by the app (no browser call to Google).
+const plexSans = IBM_Plex_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-plex-sans',
+})
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['500', '600'],
+  variable: '--font-plex-mono',
+})
+
 export const metadata: Metadata = {
-  title: 'World Builders',
+  title: 'Wrinkled World',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+      <body className="bg-ww-bg font-sans text-ww-text antialiased">{children}</body>
     </html>
   )
 }
